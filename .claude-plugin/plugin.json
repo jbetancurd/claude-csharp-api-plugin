@@ -17,6 +17,7 @@
     "serilog",
     "polly"
   ],
-  "category": "development"
+  "category": "development",
+  "skills": ["./skills/jab-csharp-api-guidelines"]
 }
 
