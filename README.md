@@ -4,25 +4,71 @@ A comprehensive guide and template system for building production-grade C# APIs 
 
 ## Quick Start
 
-### 1. Install Locally
+### Option 1: Clone from GitHub (Recommended)
+
+**First machine:**
 ```bash
-git clone https://github.com/yourusername/claude-csharp-api-plugin.git
+# Clone the repository
+git clone https://github.com/jbetancurd/claude-csharp-api-plugin.git
 cd claude-csharp-api-plugin
+
+# You're done! The plugin is ready to use
 ```
 
-### 2. Integrate with Claude Code
-Copy the plugin path to your Claude Code settings:
+**Other machines:**
+```bash
+# Clone same way
+git clone https://github.com/jbetancurd/claude-csharp-api-plugin.git
+
+# Keep it in sync
+cd claude-csharp-api-plugin
+git pull origin main  # Get latest updates
+```
+
+### Option 2: Use Directly from GitHub (No Clone)
+
+You can reference the GitHub repository directly in your Claude Code settings without cloning:
+
 ```json
 {
   "customTools": {
     "csharpApiGuide": {
-      "path": "/path/to/claude-csharp-api-plugin"
+      "type": "github",
+      "repo": "jbetancurd/claude-csharp-api-plugin",
+      "path": "/"
     }
   }
 }
 ```
 
-### 3. Use in Your Projects
+Or reference specific files:
+```json
+{
+  "documentationPath": "https://raw.githubusercontent.com/jbetancurd/claude-csharp-api-plugin/main/docs/decision-tree.md"
+}
+```
+
+### Step 2: Integrate with Claude Code
+
+If you cloned it locally, point Claude Code to the directory:
+
+```json
+{
+  "csharpApiGuide": {
+    "path": "/Users/yourname/claude-plugins/claude-csharp-api-plugin"
+  }
+}
+```
+
+Then reference in Claude conversations:
+```
+"See /docs/decision-tree.md"
+"Use template from /templates/shared/services/"
+"Check /checklists/architecture-audit.md"
+```
+
+### Step 3: Use in Your Projects
+
 When starting a new C# API project:
 1. Read `docs/decision-tree.md` to determine your project type
 2. Use templates from `templates/[api-style]/`
@@ -187,6 +233,88 @@ claude-csharp-api-plugin/
 
 ## How to Use This Plugin
 
+### Scenario 1: Using Locally (Cloned)
+
+**Best for:** Development across multiple machines, offline access
+
+```bash
+# Clone once
+git clone https://github.com/jbetancurd/claude-csharp-api-plugin.git
+cd claude-csharp-api-plugin
+
+# Configure Claude Code to point to local path
+# In settings.json: "path": "/full/path/to/claude-csharp-api-plugin"
+
+# Keep updated
+git pull origin main
+```
+
+Then reference in Claude Code:
+```
+"See /docs/decision-tree.md in the plugin"
+"Use /templates/shared/repositories/ef-repository.template.cs"
+```
+
+### Scenario 2: Using from GitHub (No Clone)
+
+**Best for:** Single machine, minimal setup
+
+Reference directly in Claude Code by GitHub path:
+```
+Read https://raw.githubusercontent.com/jbetancurd/claude-csharp-api-plugin/main/docs/decision-tree.md
+See examples at github.com/jbetancurd/claude-csharp-api-plugin/tree/main/examples
+```
+
+Or ask Claude: "Use patterns from the C# API plugin on GitHub"
+
+### Scenario 3: Copy What You Need
+
+**Best for:** Starting a new project quickly
+
+```bash
+# Clone temporarily
+git clone https://github.com/jbetancurd/claude-csharp-api-plugin.git
+cd claude-csharp-api-plugin
+
+# Copy relevant template to your project
+cp templates/shared/services/application-service.template.cs ~/my-project/Services/
+
+# Copy example to study
+cp -r examples/rest-api/todo-microservice/ ~/my-project/reference/
+
+# You can delete the clone, files are in your project
+```
+
+---
+
+## Using with Claude Code
+
+### Method 1: Local Reference (Fast)
+```bash
+# Terminal: clone once
+git clone https://github.com/jbetancurd/claude-csharp-api-plugin.git ~/claude-plugins/
+
+# In Claude Code chat:
+"See /docs/decision-tree.md in ~/claude-plugins/claude-csharp-api-plugin/"
+```
+
+### Method 2: GitHub Reference (No Local Storage)
+```
+Tell Claude:
+"I'm using https://github.com/jbetancurd/claude-csharp-api-plugin"
+"Show me the Serilog setup from /templates/shared/logging/"
+"Review against /checklists/architecture-audit.md"
+```
+
+### Method 3: Copy Template Pattern
+```
+Tell Claude:
+"Use this as a template: [copy-paste from GitHub]"
+"Generate following /docs/api-styles/restful-guide.md"
+```
+
+---
+
 ### For New Projects
 1. Run the decision tree to determine project type and API style
 2. Copy the appropriate template from `templates/`
@@ -205,19 +333,80 @@ claude-csharp-api-plugin/
 3. Understand why certain patterns are recommended
 4. Apply patterns incrementally to your projects
 
+## Using Across Multiple Machines
+
+### Setup (First Time)
+
+**Machine 1:**
+```bash
+# Clone to a standard location
+mkdir -p ~/claude-plugins
+git clone https://github.com/jbetancurd/claude-csharp-api-plugin.git ~/claude-plugins/claude-csharp-api-plugin
+```
+
+**Machine 2 (and others):**
+```bash
+# Same location for consistency
+mkdir -p ~/claude-plugins
+git clone https://github.com/jbetancurd/claude-csharp-api-plugin.git ~/claude-plugins/claude-csharp-api-plugin
+```
+
+### Keeping Updated (Any Machine)
+
+```bash
+# Get latest from GitHub
+cd ~/claude-plugins/claude-csharp-api-plugin
+git pull origin main
+```
+
+### Configure Claude Code (All Machines)
+
+Add to Claude Code settings on each machine:
+```json
+{
+  "plugins": {
+    "csharpApi": {
+      "path": "~/claude-plugins/claude-csharp-api-plugin"
+    }
+  }
+}
+```
+
+Or use absolute path:
+```json
+{
+  "plugins": {
+    "csharpApi": {
+      "path": "/Users/yourname/claude-plugins/claude-csharp-api-plugin"
+    }
+  }
+}
+```
+
+---
+
 ## Integration with Claude Code
 
 This plugin works with Claude Code's inference system. When working on C# API projects:
 
+**Reference in Claude conversations:**
 ```
-/c#-api-audit             # Audit current project against guidelines
-/c#-api-scaffold          # Generate project structure from template
-/c#-api-explain [file]    # Explain architecture patterns in file
-/c#-orm-select            # Guide ORM selection (Dapper vs EF)
-/c#-test-generate         # Generate xUnit tests from template
+"See /docs/decision-tree.md"
+"Use /templates/shared/services/application-service.template.cs as template"
+"Review against /checklists/architecture-audit.md"
+"Show example from /examples/rest-api/todo-microservice/"
+"Apply pattern from /docs/api-styles/restful-guide.md"
 ```
 
-(Commands will be configured in `.claude/settings-integration.md`)
+**Or ask Claude directly:**
+```
+"Generate a service following the plugin's application service pattern"
+"Create Serilog setup using the plugin template"
+"Review this code against the architecture checklist"
+"Explain the Onion architecture from the plugin"
+```
+
+(Full integration details in `.claude/settings-integration.md`)
 
 ## Contributing
 
@@ -231,14 +420,89 @@ This is a personal plugin designed for your projects. To extend it:
 
 Personal use plugin - free to modify and extend.
 
-## Next Steps
+## Direct GitHub URLs (No Clone Needed)
 
-1. Clone this repository to your machines
-2. Add it to your Claude Code settings
-3. Start with `docs/decision-tree.md` for your next C# API project
-4. Reference examples and templates as you build
+Use these URLs to reference plugin content directly:
+
+**Decision Tree:**
+```
+https://raw.githubusercontent.com/jbetancurd/claude-csharp-api-plugin/main/docs/decision-tree.md
+```
+
+**Architecture Guides:**
+```
+https://raw.githubusercontent.com/jbetancurd/claude-csharp-api-plugin/main/docs/architecture/onion-architecture.md
+https://raw.githubusercontent.com/jbetancurd/claude-csharp-api-plugin/main/docs/architecture/solid-principles.md
+```
+
+**API Style Guides:**
+```
+https://raw.githubusercontent.com/jbetancurd/claude-csharp-api-plugin/main/docs/api-styles/rest-guide.md
+https://raw.githubusercontent.com/jbetancurd/claude-csharp-api-plugin/main/docs/api-styles/restful-guide.md
+https://raw.githubusercontent.com/jbetancurd/claude-csharp-api-plugin/main/docs/api-styles/graphql-guide.md
+```
+
+**Templates:**
+```
+https://raw.githubusercontent.com/jbetancurd/claude-csharp-api-plugin/main/templates/shared/repositories/ef-repository.template.cs
+https://raw.githubusercontent.com/jbetancurd/claude-csharp-api-plugin/main/templates/shared/services/application-service.template.cs
+https://raw.githubusercontent.com/jbetancurd/claude-csharp-api-plugin/main/templates/shared/tests/xunit-test.template.cs
+```
+
+**Checklists:**
+```
+https://raw.githubusercontent.com/jbetancurd/claude-csharp-api-plugin/main/checklists/architecture-audit.md
+```
+
+**Note:** Replace `/raw/` with `/blob/` in the URL if you want to view on GitHub.com instead of downloading.
 
 ---
 
+## Quick Commands Reference
+
+```bash
+# Clone the plugin
+git clone https://github.com/jbetancurd/claude-csharp-api-plugin.git
+
+# Update to latest
+git pull origin main
+
+# Browse on GitHub
+https://github.com/jbetancurd/claude-csharp-api-plugin
+
+# View decision tree
+https://github.com/jbetancurd/claude-csharp-api-plugin/blob/main/docs/decision-tree.md
+
+# View templates
+https://github.com/jbetancurd/claude-csharp-api-plugin/tree/main/templates
+
+# View examples
+https://github.com/jbetancurd/claude-csharp-api-plugin/tree/main/examples
+```
+
+---
+
+## Next Steps
+
+### First Time Setup
+1. Clone: `git clone https://github.com/jbetancurd/claude-csharp-api-plugin.git`
+2. Start with `docs/decision-tree.md` for your next C# API project
+3. Copy templates and reference examples as you build
+
+### Multiple Machines
+1. Clone to standard location on each machine
+2. Keep updated with `git pull`
+3. Configure Claude Code to point to local clone
+
+### No Clone (GitHub Only)
+1. Reference URLs directly from GitHub
+2. Copy templates as needed
+3. Use raw.githubusercontent.com URLs in Claude Code settings
+
+---
+
+**GitHub Repository:** https://github.com/jbetancurd/claude-csharp-api-plugin
+
 **Last Updated:** June 2026
 **Status:** Ready for use
+**License:** MIT

@@ -1,0 +1,30 @@
+{
+  "name": "csharp-api-guide",
+  "version": "1.0.0",
+  "description": "Behavioral and architectural guidelines for building production-grade C# APIs",
+  "author": "jbetancurd",
+  "category": "development",
+  "topics": [
+    "architecture",
+    "design-patterns",
+    "best-practices",
+    "csharp",
+    "api",
+    "rest",
+    "microservices",
+    "solid",
+    "clean-code",
+    "tdd"
+  ],
+  "files": {
+    "documentation": "../docs/",
+    "templates": "../templates/",
+    "examples": "../examples/",
+    "checklists": "../checklists/"
+  },
+  "entryPoint": "../CLAUDE.md",
+  "relatedFiles": [
+    "README.md",
+    "QUICKSTART.md"
+  ]
+}
