@@ -1,0 +1,257 @@
+{
+  "name": "Claude C# API Architecture Plugin",
+  "version": "1.0.0",
+  "description": "Comprehensive guide and templates for building production-grade C# APIs with SOLID, Onion Architecture, DRY, TDD with xUnit, and SOLID principles",
+  "author": "Your Name",
+  "license": "MIT",
+  "tags": [
+    "C#",
+    "API",
+    "Architecture",
+    "SOLID",
+    "Onion",
+    "DRY",
+    "TDD",
+    "xUnit",
+    "Dapper",
+    "EntityFramework",
+    "REST",
+    "RESTful",
+    "GraphQL",
+    "Polly",
+    "Resilience"
+  ],
+  "documentation": {
+    "quickStart": "README.md",
+    "pluginGuide": "CLAUDE.md",
+    "decisionTree": "docs/decision-tree.md"
+  },
+  "components": {
+    "documentation": {
+      "architecture": [
+        "docs/architecture/onion-architecture.md",
+        "docs/architecture/solid-principles.md",
+        "docs/architecture/dry-principles.md",
+        "docs/architecture/dependency-injection.md"
+      ],
+      "apiStyles": [
+        "docs/api-styles/rest-guide.md",
+        "docs/api-styles/restful-guide.md",
+        "docs/api-styles/graphql-guide.md"
+      ],
+      "communication": [
+        "docs/communication/http-requests.md",
+        "docs/communication/websockets.md",
+        "docs/communication/protobuf-guide.md"
+      ],
+      "resilience": [
+        "docs/resilience/polly-patterns.md"
+      ],
+      "performance": [
+        "docs/performance/caching-strategies.md"
+      ]
+    },
+    "templates": {
+      "rest": "templates/rest-api/",
+      "restful": "templates/restful-api/",
+      "graphql": "templates/graphql-api/",
+      "shared": {
+        "repositories": "templates/shared/repositories/",
+        "services": "templates/shared/services/",
+        "controllers": "templates/shared/controllers/",
+        "tests": "templates/shared/tests/",
+        "middleware": "templates/shared/middleware/",
+        "resilience": "templates/shared/resilience/"
+      }
+    },
+    "examples": {
+      "rest": {
+        "microservice": "examples/rest-api/todo-microservice/",
+        "fullApi": "examples/rest-api/ecommerce-full-api/",
+        "standalone": "examples/rest-api/notification-service/"
+      },
+      "restful": {
+        "microservice": "examples/restful-api/blog-microservice/",
+        "fullApi": "examples/restful-api/inventory-full-api/",
+        "standalone": "examples/restful-api/auth-service/"
+      },
+      "graphql": {
+        "microservice": "examples/graphql-api/user-microservice/",
+        "fullApi": "examples/graphql-api/social-full-api/",
+        "standalone": "examples/graphql-api/analytics-service/"
+      }
+    },
+    "checklists": [
+      "checklists/architecture-audit.md",
+      "checklists/api-style-selection.md",
+      "checklists/resilience-audit.md",
+      "checklists/performance-audit.md"
+    ]
+  },
+  "architecture": {
+    "type": "Onion Architecture",
+    "layers": [
+      "Domain (Core business logic, zero dependencies)",
+      "Application (Use cases, services, DTOs)",
+      "Infrastructure (Persistence, external services)",
+      "Presentation (API, Controllers, HTTP)"
+    ],
+    "principles": [
+      "SOLID (Single Responsibility, Open/Closed, Liskov, Interface Segregation, Dependency Inversion)",
+      "DRY (Don't Repeat Yourself)",
+      "TDD (Test-Driven Development)",
+      "Clean Code"
+    ]
+  },
+  "orms": {
+    "dapper": {
+      "description": "Lightweight, high-control data access",
+      "template": "templates/shared/repositories/dapper-repository.template.cs",
+      "best_for": ["Performance critical systems", "Legacy databases", "Fine-grained SQL control"]
+    },
+    "entityFramework": {
+      "description": "Feature-rich ORM with Code-First approach",
+      "template": "templates/shared/repositories/ef-repository.template.cs",
+      "best_for": ["Domain-driven design", "Complex relationships", "Rapid development"]
+    }
+  },
+  "apiStyles": {
+    "rest": {
+      "description": "Action-oriented API design",
+      "guide": "docs/api-styles/rest-guide.md",
+      "example": "examples/rest-api/todo-microservice/"
+    },
+    "restful": {
+      "description": "Resource-oriented, HTTP-semantic API design",
+      "guide": "docs/api-styles/restful-guide.md",
+      "example": "examples/restful-api/inventory-full-api/"
+    },
+    "graphql": {
+      "description": "Query language for flexible API design",
+      "guide": "docs/api-styles/graphql-guide.md",
+      "example": "examples/graphql-api/social-full-api/"
+    }
+  },
+  "projectTypes": {
+    "microservice": {
+      "description": "Single responsibility, independent deployment",
+      "characteristics": ["Small-to-medium size", "Own database", "Focused business capability"],
+      "examplePath": "examples/{style}/[service]-microservice/"
+    },
+    "fullApi": {
+      "description": "Complete business application API",
+      "characteristics": ["Large scope", "Multiple domains", "All in one deployment"],
+      "examplePath": "examples/{style}/[business]-full-api/"
+    },
+    "standalone": {
+      "description": "Single function, often background work",
+      "characteristics": ["Small scope", "Often event/timer-driven", "Specific responsibility"],
+      "examplePath": "examples/{style}/[service]-service/"
+    }
+  },
+  "technologies": {
+    "required": [
+      ".NET 6.0 or higher",
+      "C# 10 or higher"
+    ],
+    "optional": [
+      "Entity Framework Core",
+      "Dapper",
+      "Polly",
+      "xUnit",
+      "Moq",
+      "FluentAssertions",
+      "SignalR (WebSockets)",
+      "Protocol Buffers",
+      "Redis (caching)",
+      "OpenTelemetry (logging)"
+    ]
+  },
+  "howToUse": {
+    "step1": "Read docs/decision-tree.md to determine your project path",
+    "step2": "Copy relevant template from templates/[api-style]/[project-type]/",
+    "step3": "Study the matching example from examples/[api-style]/[specific]/",
+    "step4": "Implement following architecture and TDD patterns",
+    "step5": "Verify against checklists/architecture-audit.md"
+  },
+  "supportedScenarios": [
+    "REST APIs with Dapper for fine-grained control",
+    "RESTful APIs with Entity Framework Code-First",
+    "GraphQL APIs with either ORM",
+    "Microservices with independent databases",
+    "Full-featured APIs with multiple domains",
+    "Real-time APIs with WebSockets",
+    "Resilient systems with Polly",
+    "Cached APIs with Redis or in-memory",
+    "Well-tested APIs with 80%+ coverage",
+    "Clean code following SOLID principles"
+  ],
+  "features": [
+    "✅ Complete Onion Architecture guide",
+    "✅ SOLID principles explained with examples",
+    "✅ DRY pattern implementations",
+    "✅ ORM decision guide (Dapper vs EF)",
+    "✅ Three API style guides (REST, RESTful, GraphQL)",
+    "✅ TDD with xUnit templates",
+    "✅ Polly resilience patterns",
+    "✅ Caching strategies",
+    "✅ WebSocket integration",
+    "✅ Three example projects per API style",
+    "✅ Architecture audit checklist",
+    "✅ Code templates for reuse",
+    "✅ Repository patterns",
+    "✅ Service patterns",
+    "✅ Controller patterns",
+    "✅ Test patterns"
+  ],
+  "integrationPoints": {
+    "claudeCode": {
+      "referenceDocs": "Use /docs/ files when discussing architecture",
+      "generateCode": "Use templates/ files for code generation",
+      "reviewCode": "Use checklists/ for code review",
+      "teachPatterns": "Use examples/ to demonstrate patterns"
+    }
+  },
+  "keywords": [
+    "C# API",
+    "Onion Architecture",
+    "SOLID Principles",
+    "DRY Pattern",
+    "TDD",
+    "xUnit",
+    "Repository Pattern",
+    "Dependency Injection",
+    "Dapper",
+    "Entity Framework",
+    "REST API",
+    "RESTful API",
+    "GraphQL",
+    "Polly Resilience",
+    "Microservices",
+    "Clean Architecture",
+    "Clean Code",
+    "Domain-Driven Design"
+  ],
+  "versioning": {
+    "current": "1.0.0",
+    "changelog": {
+      "1.0.0": [
+        "Initial release",
+        "Complete Onion Architecture guide",
+        "SOLID principles documentation",
+        "REST, RESTful, and GraphQL style guides",
+        "Dapper and EF repository templates",
+        "xUnit test templates",
+        "Polly resilience patterns",
+        "Complete example projects",
+        "Architecture audit checklist"
+      ]
+    }
+  },
+  "contributing": {
+    "guidelines": "Add new examples as you create projects",
+    "templates": "Update templates based on lessons learned",
+    "documentation": "Add new docs as patterns evolve",
+    "sharing": "Push to GitHub for use across machines"
+  }
+}
