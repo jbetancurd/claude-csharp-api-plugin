@@ -141,9 +141,56 @@ query GetOrderWithItems($id: ID!) {
 
 ---
 
-## Step 4: Data Persistence Strategy
+## Step 4: Database Type
 
-**Question: How will you handle data persistence?**
+**Question: What type of database will you use?**
+
+### A) SQL Database (SQL Server, PostgreSQL, MySQL)
+✅ **Choose if:**
+- Relational data with complex relationships
+- ACID transactions required
+- Multi-user concurrent access
+- Need migrations and schema management
+- Traditional enterprise application
+- Scalability to millions of records
+
+**Supports**: EF Core or Dapper ORM
+**Requires**: DbContext configuration, Entity mappings, Migrations
+**Best for**: Complex business logic, multiple entities, relationships
+
+→ **Read**: `/docs/orm-guide/dapper-vs-ef-comparison.md`
+→ **Templates**: `/templates/shared/repositories/`
+
+### B) LiteDB (Embedded NoSQL/Document Database)
+✅ **Choose if:**
+- Single-file embedded database
+- Document-oriented data model
+- Simple to moderate data needs
+- Desktop or small service application
+- No separate database server needed
+- Quick prototyping or local development
+
+**Does NOT use**: DbContext or traditional ORM
+**Uses**: ILiteDatabase interface
+**No migrations**: Schema-less (flexible)
+**Best for**: Microservices, embedded scenarios, rapid development, small projects
+
+→ **Read**: `/docs/orm-guide/litedb-guide.md`
+→ **Templates**: `/templates/shared/repositories/litedb-repository.template.cs`
+
+### C) Hybrid (Both SQL and LiteDB)
+✅ **Choose if:**
+- SQL for main application data
+- LiteDB for local caching or offline data
+- Primary data in relational DB, cached in LiteDB
+
+**Example**: EF Core for cloud data + LiteDB for local sync
+
+---
+
+## Step 5: Data Persistence Strategy (For SQL Databases)
+
+**Question: How will you handle data persistence with SQL?**
 
 ### A) Dapper (Lightweight, Full Control)
 ```csharp
@@ -198,7 +245,7 @@ var user = await _context.Users
 
 ---
 
-## Step 5: Resilience & Error Handling
+## Step 6: Resilience & Error Handling
 
 **Question: Does your API need resilience patterns for distributed scenarios?**
 
@@ -235,7 +282,7 @@ await policy.ExecuteAsync(() => _httpClient.GetAsync(url));
 
 ---
 
-## Step 6: Caching Strategy
+## Step 7: Caching Strategy
 
 **Question: Do you need caching for performance?**
 
@@ -280,7 +327,7 @@ var cachedUsers = await _distributedCache.GetAsync("users:list");
 
 ---
 
-## Step 7: Serialization & Protocol
+## Step 8: Serialization & Protocol
 
 **Question: How will data be serialized over the wire?**
 
@@ -319,7 +366,7 @@ message User {
 
 ---
 
-## Step 8: Testing Strategy
+## Step 9: Testing Strategy
 
 **Question: How will you verify correctness?**
 
@@ -353,7 +400,7 @@ public void CreateUser_WithInvalidEmail_ThrowsException(string email)
 
 ---
 
-## Step 9: Your Complete Path
+## Step 10: Your Complete Path
 
 ### Path Summary
 
