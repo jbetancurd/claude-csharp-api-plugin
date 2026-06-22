@@ -3,35 +3,20 @@
   "description": "Comprehensive guide and templates for building production-grade C# APIs with SOLID, Onion Architecture, DRY, TDD with xUnit, and structured logging",
   "version": "1.0.0",
   "author": {
-    "name": "jbetancurd",
-    "url": "https://github.com/jbetancurd"
+    "name": "jbetancurd"
   },
   "license": "MIT",
-  "homepage": "https://github.com/jbetancurd/claude-csharp-api-plugin",
   "keywords": [
     "csharp",
     "api",
     "architecture",
     "solid",
     "onion",
-    "dapper",
-    "entity-framework",
-    "rest",
-    "restful",
-    "graphql",
     "tdd",
     "xunit",
     "serilog",
-    "polly",
-    "microservices"
+    "polly"
   ],
-  "category": "development",
-  "skills": [
-    "./skills/csharp-api-guide"
-  ],
-  "documentationUrl": "https://github.com/jbetancurd/claude-csharp-api-plugin/blob/main/README.md",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/jbetancurd/claude-csharp-api-plugin.git"
-  }
+  "category": "development"
 }
+
