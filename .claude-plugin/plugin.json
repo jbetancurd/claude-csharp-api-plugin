@@ -1,0 +1,23 @@
+{
+  "name": "claude-csharp-api-plugin",
+  "description": "Comprehensive guide and templates for building production-grade C# APIs with SOLID, Onion Architecture, DRY, TDD with xUnit, and structured logging",
+  "version": "1.0.0",
+  "author": {
+    "name": "jbetancurd"
+  },
+  "license": "MIT",
+  "keywords": [
+    "csharp",
+    "api",
+    "architecture",
+    "solid",
+    "onion",
+    "tdd",
+    "xunit",
+    "serilog",
+    "polly"
+  ],
+  "category": "development",
+  "skills": ["./skills/jab-csharp-api-guidelines"]
+}
+

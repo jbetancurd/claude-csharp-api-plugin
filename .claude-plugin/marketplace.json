@@ -1,1 +1,40 @@
-
+{
+  "name": "csharp-api-plugin",
+  "id": "csharp-api-plugin",
+  "owner": {
+    "name": "jbetancurd"
+  },
+  "metadata": {
+    "description": "Production-grade C# API development with SOLID principles, Onion Architecture, DRY patterns, TDD with xUnit, Serilog logging, error handling patterns, and ready-to-use templates",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "claude-csharp-api-plugin",
+      "source": "./",
+      "description": "Comprehensive guide for C# API development covering architecture, design patterns, logging, error handling, ORM selection, and TDD",
+      "version": "1.0.0",
+      "author": {
+        "name": "jbetancurd"
+      },
+      "keywords": [
+        "csharp",
+        "api",
+        "architecture",
+        "solid",
+        "onion",
+        "dapper",
+        "entity-framework",
+        "rest",
+        "restful",
+        "graphql",
+        "tdd",
+        "xunit",
+        "serilog",
+        "polly",
+        "microservices"
+      ],
+      "category": "development"
+    }
+  ]
+}
