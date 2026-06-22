@@ -2,113 +2,39 @@
   "name": "csharp-api-plugin",
   "id": "csharp-api-plugin",
   "owner": {
-    "name": "jbetancurd",
-    "url": "https://github.com/jbetancurd"
+    "name": "jbetancurd"
   },
   "metadata": {
-    "title": "Claude C# API Architecture Plugin",
     "description": "Production-grade C# API development with SOLID principles, Onion Architecture, DRY patterns, TDD with xUnit, Serilog logging, error handling patterns, and ready-to-use templates",
-    "version": "1.0.0",
-    "category": "development"
+    "version": "1.0.0"
   },
   "plugins": [
     {
-      "id": "csharp-api-architecture",
       "name": "claude-csharp-api-plugin",
       "source": "./",
       "description": "Comprehensive guide for C# API development covering architecture, design patterns, logging, error handling, ORM selection, and TDD",
       "version": "1.0.0",
       "author": {
-        "name": "jbetancurd",
-        "url": "https://github.com/jbetancurd"
+        "name": "jbetancurd"
       },
-      "license": "MIT",
       "keywords": [
         "csharp",
-        "dotnet",
         "api",
-        "rest",
-        "restful",
-        "graphql",
         "architecture",
         "solid",
         "onion",
-        "clean-code",
-        "tdd",
-        "xunit",
         "dapper",
         "entity-framework",
+        "rest",
+        "restful",
+        "graphql",
+        "tdd",
+        "xunit",
         "serilog",
         "polly",
-        "microservices",
-        "best-practices",
-        "design-patterns",
-        "error-handling"
+        "microservices"
       ],
-      "category": "development",
-      "features": [
-        "Architecture patterns (Onion, SOLID, DRY)",
-        "API style guides (REST, RESTful, GraphQL)",
-        "ORM guidance (Dapper vs Entity Framework)",
-        "Code templates (repositories, services, controllers)",
-        "Test templates (xUnit with AAA pattern)",
-        "Structured logging (Serilog with connectors)",
-        "Error handling (AOP decorators and HTTP filters)",
-        "Resilience patterns (Polly retry, circuit breaker)",
-        "Complete working examples",
-        "Architecture audit checklists"
-      ],
-      "components": {
-        "documentation": [
-          "Decision tree questionnaire",
-          "Onion architecture guide",
-          "SOLID principles",
-          "DRY patterns",
-          "API style comparison",
-          "ORM selection guide",
-          "EF Core migrations",
-          "Serilog logging strategy",
-          "AOP vs Filters error handling",
-          "Polly resilience patterns",
-          "Caching strategies"
-        ],
-        "templates": [
-          "Dapper repository",
-          "EF Core repository",
-          "DbContext configuration",
-          "Application service",
-          "Global exception filter",
-          "AOP error handling decorator",
-          "Serilog setup",
-          "xUnit test templates"
-        ],
-        "examples": [
-          "REST API (microservice, full-api, standalone)",
-          "RESTful API (microservice, full-api, standalone)",
-          "GraphQL API (microservice, full-api, standalone)"
-        ],
-        "checklists": [
-          "Architecture audit",
-          "API style selection",
-          "Resilience audit",
-          "Performance audit"
-        ]
-      },
-      "documentation": {
-        "homepage": "https://github.com/jbetancurd/claude-csharp-api-plugin",
-        "guide": "https://github.com/jbetancurd/claude-csharp-api-plugin/blob/main/QUICKSTART.md",
-        "decisionTree": "https://github.com/jbetancurd/claude-csharp-api-plugin/blob/main/docs/decision-tree.md"
-      },
-      "repository": {
-        "type": "git",
-        "url": "https://github.com/jbetancurd/claude-csharp-api-plugin.git",
-        "branch": "main"
-      }
+      "category": "development"
     }
-  ],
-  "stats": {
-    "downloads": 0,
-    "rating": 0,
-    "usage": 0
-  }
+  ]
 }
