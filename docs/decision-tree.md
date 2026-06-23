@@ -17,7 +17,7 @@ Use this interactive guide to determine the best architecture and API style for 
 → **Templates**: `/templates/*/microservice/`
 → **Examples**: `examples/*/[service]-microservice/`
 
-### B) Full REST API
+### B) Full REST API (Long-Term APIs)
 ✅ **Choose if:**
 - Complete, standalone business application
 - Handles multiple interconnected domains
@@ -25,6 +25,14 @@ Use this interactive guide to determine the best architecture and API style for 
 - All in one deployable unit
 - Example: E-commerce API, CMS, Project Management System
 
+**IMPORTANT for Full APIs**: Use API Versioning!
+```
+/api/v1/users        ← Version 1
+/api/v2/users        ← Version 2 (breaking changes)
+/api/v3/users        ← Version 3 (new features)
+```
+
+→ **Read**: `/docs/api-styles/api-versioning-guide.md` (ESSENTIAL for production APIs)
 → **Templates**: `/templates/*/full-api/`
 → **Examples**: `examples/*/[business]-full-api/`
 
@@ -107,7 +115,104 @@ query GetOrderWithItems($id: ID!) {
 
 ---
 
-## Step 3: Real-Time Communication
+## Step 3: Authentication Strategy (CRITICAL!)
+
+**Question: How will you authenticate users and protect your API?**
+
+### A) No Authentication (Development/Internal Only)
+✅ **Choose if:**
+- Internal-only API (firewalled)
+- Development/sandbox
+- Learning projects
+- Public read-only API
+
+**WARNING**: ⚠️ Not suitable for production user-facing APIs
+
+### B) API Keys (Simple Service-to-Service)
+```
+Header: X-API-Key: sk_prod_abc123xyz
+```
+
+✅ **Choose if:**
+- Service-to-service communication
+- Limited clients (< 10)
+- Simple integrations
+- Easy key rotation needed
+
+**Setup**: `dotnet add package AspNetCore.Authentication.ApiKey`
+
+### C) JWT Tokens (Self-Issued) ⭐ Recommended for APIs
+```
+Header: Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+✅ **Choose if:**
+- Modern web/mobile apps
+- Stateless authentication
+- Scalable (no server sessions)
+- Single-domain auth
+- Multiple client types
+
+**Setup**: `dotnet add package System.IdentityModel.Tokens.Jwt`
+
+**Includes**:
+- Access tokens (15-60 min)
+- Refresh tokens (7 days)
+- Custom claims
+- Role-based authorization
+
+### D) OAuth 2.0 (3rd Party Login)
+```
+"Login with Google/GitHub/Facebook"
+```
+
+✅ **Choose if:**
+- Consumer applications
+- Social login features
+- Don't manage passwords
+- Enterprise federation (Azure AD)
+- Multi-tenant applications
+
+**Popular Providers**:
+- Google OAuth
+- GitHub OAuth
+- Microsoft Azure AD
+- Facebook Login
+- Apple Sign In
+
+**Setup**: Provider-specific package (e.g., `Google.Apis.Auth`)
+
+### E) Identity Server / Azure AD (Enterprise)
+```
+Centralized user management across multiple apps
+```
+
+✅ **Choose if:**
+- Enterprise applications
+- Microsoft ecosystem
+- Multi-tenant with SSO
+- Complex authorization rules
+- On-premise or cloud identity
+
+**Setup**: `dotnet add package Microsoft.Identity.Web`
+
+---
+
+## Comparison Matrix
+
+| Method | Setup | Security | Scalability | Best For |
+|--------|-------|----------|-------------|----------|
+| **None** | Easy | ❌ None | N/A | Dev only |
+| **API Keys** | Easy | ⭐⭐ Basic | Good | Service-to-service |
+| **JWT** | Medium | ⭐⭐⭐ Strong | ⭐⭐⭐⭐⭐ Excellent | **Modern APIs** |
+| **OAuth** | Hard | ⭐⭐⭐⭐ Very Strong | Excellent | Social login |
+| **Azure AD** | Hard | ⭐⭐⭐⭐⭐ Very Strong | Excellent | Enterprise |
+
+→ **Full Guide**: `/docs/security/authentication-guide.md`
+
+---
+
+## Step 4: Real-Time Communication
 
 **Question: Do clients need real-time, bidirectional communication?**
 
@@ -141,7 +246,7 @@ query GetOrderWithItems($id: ID!) {
 
 ---
 
-## Step 4: Database Type
+## Step 5: Database Type
 
 **Question: What type of database will you use?**
 
@@ -212,7 +317,7 @@ query GetOrderWithItems($id: ID!) {
 
 ---
 
-## Step 5: CQRS Pattern (For SQL Databases Only)
+## Step 6: CQRS Pattern (For SQL Databases Only)
 
 **Question: Will you use CQRS (Command Query Responsibility Segregation)?**
 
@@ -275,7 +380,7 @@ public class GetOrderSummaryQueryHandler { ... }
 
 ---
 
-## Step 6: Data Persistence Strategy (For SQL Databases)
+## Step 7: Data Persistence Strategy (For SQL Databases)
 
 **Question: How will you handle data persistence with SQL?**
 
@@ -332,7 +437,7 @@ var user = await _context.Users
 
 ---
 
-## Step 7: Resilience & Error Handling
+## Step 8: Resilience & Error Handling
 
 **Question: Does your API need resilience patterns for distributed scenarios?**
 
@@ -369,7 +474,7 @@ await policy.ExecuteAsync(() => _httpClient.GetAsync(url));
 
 ---
 
-## Step 8: Caching Strategy
+## Step 9: Caching Strategy
 
 **Question: Do you need caching for performance and quick access?**
 
@@ -499,7 +604,7 @@ Check In-Memory Cache (fast!)
 
 ---
 
-## Step 9: Serialization & Protocol
+## Step 10: Serialization & Protocol
 
 **Question: How will data be serialized over the wire?**
 
@@ -538,7 +643,7 @@ message User {
 
 ---
 
-## Step 10: Testing & TDD Approach
+## Step 11: Testing & TDD Approach
 
 **Question: How will you organize and write tests for correctness?**
 
@@ -747,7 +852,7 @@ public async Task PostUser_WithValidPayload_Returns201Created()
 
 ---
 
-## Step 11: Mocking Strategy (For Unit Tests)
+## Step 12: Mocking Strategy (For Unit Tests)
 
 **Question: How will you mock external dependencies in unit tests?**
 
@@ -838,7 +943,7 @@ var service = new UserService(fakeRepo);
 
 ---
 
-## Step 12: Test Organization & Structure
+## Step 13: Test Organization & Structure
 
 **Question: How will you organize your test projects?**
 
@@ -907,7 +1012,7 @@ Tests/
 
 ---
 
-## Step 13: E2E Testing & API Simulation Strategy
+## Step 14: E2E Testing & API Simulation Strategy
 
 **Question: How will you test complete user workflows and API integration?**
 
@@ -1075,7 +1180,7 @@ public class UserWorkflowTests
 
 ---
 
-## Step 14: Swagger UI & Health Checks Configuration
+## Step 15: Swagger UI & Health Checks Configuration
 
 **Question: How will you expose your API documentation and health status?**
 
@@ -1190,7 +1295,7 @@ app.UseSwaggerUI(options =>
 
 ---
 
-## Step 15: Project Documentation Setup (Optional)
+## Step 16: Project Documentation Setup (Optional)
 
 **Question: Do you want to create project documentation templates?**
 
@@ -1290,7 +1395,7 @@ project-root/
 
 ---
 
-## Step 16: Your Complete Path
+## Step 17: Your Complete Path
 
 ### Full Project Setup Workflow
 

@@ -288,6 +288,56 @@ public class OrdersControllerTests
 - Building public/standard APIs
 - Team prefers RESTful standards
 
+## API Versioning for REST (Important!)
+
+For long-lived REST APIs, **versioning is essential** to manage breaking changes:
+
+### Quick Versioning Setup
+
+```bash
+dotnet add package Asp.Versioning.Mvc.ApiExplorer
+```
+
+### Versioned Controller Example
+
+```csharp
+[ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/orders")]
+public class OrdersV1Controller : ControllerBase
+{
+    [HttpPost("{id}/approve")]
+    public async Task<ActionResult> ApproveOrder(int id) { /* ... */ }
+}
+
+[ApiController]
+[ApiVersion("2.0")]
+[Route("api/v{version:apiVersion}/orders")]
+public class OrdersV2Controller : ControllerBase
+{
+    [HttpPost("{id}/approve")]
+    public async Task<ActionResult> ApproveOrder(int id, ApproveOrderV2Dto dto) { /* Enhanced */ }
+}
+```
+
+### URLs with Versioning
+
+```
+/api/v1/orders/1/approve       ← Version 1
+/api/v2/orders/1/approve       ← Version 2 with breaking changes
+```
+
+### Swagger Supports All Versions
+
+Swagger UI automatically shows version dropdown:
+```
+Select Version: [v2.0 ▼]
+  ✓ v2.0 (Latest)
+    v1.0 (Deprecated ⚠️)
+```
+
+→ **Full Guide**: See `/docs/api-styles/api-versioning-guide.md` for complete setup and examples
+
 ---
 
 **Comparison**: See [RESTful Guide](restful-guide.md) for resource-based approach.
