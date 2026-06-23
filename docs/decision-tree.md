@@ -145,46 +145,70 @@ query GetOrderWithItems($id: ID!) {
 
 **Question: What type of database will you use?**
 
-### A) SQL Database (SQL Server, PostgreSQL, MySQL)
+### A) Server-Based SQL Database (SQL Server, PostgreSQL, MySQL)
 ✅ **Choose if:**
 - Relational data with complex relationships
 - ACID transactions required
-- Multi-user concurrent access
+- Multi-user concurrent access (10+ concurrent users)
 - Need migrations and schema management
 - Traditional enterprise application
 - Scalability to millions of records
+- Separate database server infrastructure
 
 **Supports**: EF Core or Dapper ORM
 **Requires**: DbContext configuration, Entity mappings, Migrations
-**Best for**: Complex business logic, multiple entities, relationships
+**Best for**: Enterprise apps, complex business logic, multi-user systems
 
 → **Read**: `/docs/orm-guide/dapper-vs-ef-comparison.md`
 → **Templates**: `/templates/shared/repositories/`
+→ **Next**: Step 5 (CQRS choice)
 
-### B) LiteDB (Embedded NoSQL/Document Database)
+### B) SQLite (Embedded SQL Database)
+✅ **Choose if:**
+- Single-file SQL database (like LiteDB but with SQL)
+- Embedded/no separate server needed
+- Relational schema with SQL support
+- Limited concurrent users (1-5)
+- Desktop, mobile, or small microservice
+- Local development or offline-first app
+- Want SQL features with embedded simplicity
+
+**Supports**: EF Core (best) or Dapper
+**Uses**: SQLite connection string
+**Migrations**: Full EF Core migrations support
+**Best for**: Desktop apps, mobile, embedded scenarios, small services with SQL needs
+
+→ **Read**: `/docs/orm-guide/sqlite-guide.md`
+→ **Templates**: `/templates/shared/repositories/`
+→ **Next**: Step 5 (CQRS choice)
+
+### C) LiteDB (Embedded NoSQL/Document Database)
 ✅ **Choose if:**
 - Single-file embedded database
-- Document-oriented data model
+- Document-oriented data model (not relational)
 - Simple to moderate data needs
 - Desktop or small service application
 - No separate database server needed
 - Quick prototyping or local development
+- Flexible schema (schema-less)
 
 **Does NOT use**: DbContext or traditional ORM
 **Uses**: ILiteDatabase interface
 **No migrations**: Schema-less (flexible)
-**Best for**: Microservices, embedded scenarios, rapid development, small projects
+**Best for**: Rapid development, NoSQL scenarios, embedded, small projects
 
 → **Read**: `/docs/orm-guide/litedb-guide.md`
 → **Templates**: `/templates/shared/repositories/litedb-repository.template.cs`
+→ **Next**: Skip Step 5 (CQRS), go to Step 6
 
-### C) Hybrid (Both SQL and LiteDB)
+### D) Hybrid (Multiple Databases)
 ✅ **Choose if:**
-- SQL for main application data
-- LiteDB for local caching or offline data
-- Primary data in relational DB, cached in LiteDB
+- Main app in server SQL (PostgreSQL)
+- Local cache in SQLite or LiteDB
+- Event store separate
+- Different DBs for different services (microservices)
 
-**Example**: EF Core for cloud data + LiteDB for local sync
+**Example**: EF Core + PostgreSQL for cloud + SQLite for local sync + LiteDB for cache
 
 ---
 
@@ -347,46 +371,131 @@ await policy.ExecuteAsync(() => _httpClient.GetAsync(url));
 
 ## Step 8: Caching Strategy
 
-**Question: Do you need caching for performance?**
+**Question: Do you need caching for performance and quick access?**
 
 ### A) No Caching
-- Simple applications
-- Real-time data only
-- Low traffic
-- Learning projects
+✅ **Choose if:**
+- Simple applications (CRUD only)
+- Real-time data always required
+- Low traffic (< 100 req/min)
+- Learning/prototype projects
+- Small dataset
+- Database is already fast enough
 
-### B) In-Memory Cache
+**Impact**: Slower response times, more DB load
+
+### B) In-Memory Cache (IMemoryCache)
 ```csharp
-_memoryCache.Set("users:list", users, TimeSpan.FromMinutes(5));
+// Store in process memory
+_cache.Set("users:list", users, TimeSpan.FromMinutes(5));
+var cached = _cache.Get("users:list");
 ```
 
 ✅ **Choose if:**
-- Single server deployment
-- Moderate data size
-- Acceptable to lose cache on restart
+- **Single server** deployment only
+- Moderate data size (< 500MB)
+- Acceptable to lose cache on app restart
+- Cache invalidation is simple
 - Lower infrastructure costs
+- Fast access within same process
 
+**Pros**: ⚡ Fastest (in-process), no network latency, no additional infrastructure
+**Cons**: ⚠️ Lost on restart, not shared across servers, high memory usage
+
+**Best for**: Desktop apps, single-server microservices, development
+
+→ **Read**: `/docs/performance/caching-strategies.md`
 → **Template**: `/templates/shared/caching/in-memory-cache.template.cs`
 
-### C) Distributed Cache (Redis)
+**Setup**:
+```bash
+dotnet add package Microsoft.Extensions.Caching.Memory
+```
+
+### C) Redis (Distributed Cache)
 ```csharp
-var cachedUsers = await _distributedCache.GetAsync("users:list");
+// Shared cache across servers
+var cached = await _distributedCache.GetAsync("users:list");
+await _distributedCache.SetAsync("users:list", data, 
+    new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5) });
 ```
 
 ✅ **Choose if:**
-- Multiple server deployment
-- Need cache persistence
-- Microservices sharing cache
-- High traffic, performance critical
+- **Multiple servers** (load balanced)
+- **Microservices** sharing cache
+- Cache must **survive app restart**
+- **High traffic** (> 1000 req/min)
+- Performance critical (read-heavy)
+- Different services need same cache
 
-→ **Template**: `/templates/shared/caching/distributed-cache.template.cs`
+**Pros**: 📦 Persistent, shared across servers/services, handles high load, survives restarts
+**Cons**: ⚠️ Extra infrastructure (Redis server), network latency, complexity
 
-### D) Both (Multi-Level)
-- L1: In-memory for speed
-- L2: Distributed for consistency
-- Complex but powerful
+**Best for**: Cloud apps, microservices, high-traffic APIs, multi-server deployments
+
+→ **Read**: `/docs/performance/caching-strategies.md`
+→ **Template**: `/templates/shared/caching/redis-cache.template.cs`
+
+**Setup**:
+```bash
+dotnet add package Microsoft.Extensions.Caching.StackExchangeRedis
+```
+
+### D) Hybrid (Both In-Memory + Redis)
+```
+Request
+  ↓
+Check In-Memory Cache (fast!)
+  ├─ Hit: Return immediately ⚡
+  └─ Miss: Check Redis (persistent shared cache)
+       ├─ Hit: Load into memory, return ⚡
+       └─ Miss: Query database, cache in both levels
+```
+
+✅ **Choose if:**
+- **Maximum performance** needed
+- **Multiple servers** with high traffic
+- Want **best of both worlds**: speed + consistency
+- Complex caching strategy (different TTLs for different data)
+
+**Pros**: ⚡ Fastest (memory), 📦 Persistent (Redis), 🎯 Scalable
+**Cons**: ⚠️ Most complex, needs cache invalidation strategy
+
+**Best for**: High-performance cloud APIs, critical systems, large-scale microservices
 
 → **Advanced pattern in examples**
+
+---
+
+## Caching Comparison Matrix
+
+| Factor | None | In-Memory | Redis | Hybrid |
+|--------|------|-----------|-------|--------|
+| **Speed** | Slow | ⚡⚡⚡ Fastest | ⚡⚡ Fast | ⚡⚡⚡ Fastest |
+| **Persistence** | N/A | ❌ Lost on restart | ✅ Persistent | ✅ Persistent |
+| **Multi-Server** | ❌ | ❌ Separate caches | ✅ Shared | ✅ Shared |
+| **Infrastructure** | DB only | App memory | Redis server | App + Redis |
+| **Complexity** | 🟢 Simple | 🟡 Medium | 🟡 Medium | 🔴 Complex |
+| **Memory Usage** | None | 🔴 High (in-process) | 🟡 On Redis server | 🔴 High |
+| **Best for** | Simple apps | Single-server | Multi-server | High-performance |
+| **Cost** | Low | Low | Medium | Medium |
+
+---
+
+## When to Add Caching
+
+**Start with NO caching**, then add if:
+1. ✅ Database queries are slow (profile first!)
+2. ✅ Same data requested repeatedly
+3. ✅ Data changes infrequently
+4. ✅ Traffic exceeds database capacity
+5. ✅ Response time targets not met
+
+**Don't cache if:**
+- ❌ Data changes frequently (cache invalidation nightmare)
+- ❌ Database is already fast enough
+- ❌ Real-time accuracy critical
+- ❌ Adding complexity not worth the gain
 
 ---
 
