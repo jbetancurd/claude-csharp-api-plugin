@@ -538,41 +538,544 @@ message User {
 
 ---
 
-## Step 10: Testing Strategy
+## Step 10: Testing & TDD Approach
 
-**Question: How will you verify correctness?**
+**Question: How will you organize and write tests for correctness?**
 
-All templates include **xUnit with TDD** (Test-Driven Development).
-
-### Test Types Included
-
+### A) Unit Tests with Mocks (Isolation Testing)
 ```csharp
-// Unit Test - Single class in isolation
+// Test single class, mock dependencies
 [Fact]
 public async Task CreateUser_WithValidData_ReturnsUserDto()
-
-// Integration Test - Component interactions
-[Fact]
-public async Task CreateUser_WithDatabase_PersistsCorrectly()
-
-// API Test - HTTP endpoint
-[Fact]
-public async Task PostUser_WithValidPayload_Returns201Created()
-
-// Theory - Parameterized test
-[Theory]
-[InlineData("")]
-[InlineData(null)]
-public void CreateUser_WithInvalidEmail_ThrowsException(string email)
+{
+    // Arrange - Setup mocks
+    var mockRepository = new Mock<IUserRepository>();
+    mockRepository
+        .Setup(r => r.AddAsync(It.IsAny<User>()))
+        .ReturnsAsync(new User { Id = 1 });
+    
+    var service = new UserService(mockRepository.Object);
+    
+    // Act
+    var result = await service.CreateUserAsync(new CreateUserDto { Name = "John" });
+    
+    // Assert
+    Assert.NotNull(result);
+    mockRepository.Verify(r => r.AddAsync(It.IsAny<User>()), Times.Once);
+}
 ```
 
-→ **Read**: `/docs/tdd-xunit/testing-patterns.md`
-→ **Templates**: `/templates/shared/tests/`
-→ **Examples**: Study test files in examples
+✅ **Choose if:**
+- Want **fast, isolated tests** (no database)
+- Testing business logic in isolation
+- Need to control external dependencies
+- Quick test feedback loop important
+- Each class tested independently
+- No side effects or I/O operations
+
+**Pros**: ⚡ Fast, reliable, easy to debug
+**Cons**: ⚠️ Requires mocking, may miss integration bugs
+
+**Mocking Libraries**:
+- **Moq** - Most popular, fluent syntax
+- **NSubstitute** - Simpler syntax
+- **FakeItEasy** - Another alternative
+
+→ **Read**: `/docs/tdd-xunit/unit-testing-mocks.md` (new)
+→ **Template**: `/templates/shared/tests/unit-test-with-mocks.template.cs` (new)
+→ **Example**: Unit test examples with Moq
+
+### B) Integration Tests (Component Interactions)
+```csharp
+// Test multiple components working together with real database
+[Collection("DatabaseCollection")]
+public class UserServiceIntegrationTests
+{
+    private readonly ApplicationDbContext _context;
+    
+    [Fact]
+    public async Task CreateUser_WithDatabase_PersistsCorrectly()
+    {
+        // Arrange - Real database
+        var repository = new UserRepository(_context);
+        var service = new UserService(repository);
+        
+        // Act
+        var userId = await service.CreateUserAsync(new CreateUserDto { Name = "John" });
+        
+        // Assert - Verify in database
+        var user = await _context.Users.FindAsync(userId);
+        Assert.NotNull(user);
+        Assert.Equal("John", user.Name);
+    }
+}
+```
+
+✅ **Choose if:**
+- Testing component interactions
+- Need real database operations
+- Want to catch integration bugs
+- Don't mind slower tests
+- Verifying repository + service together
+- Testing actual data persistence
+
+**Pros**: 📦 Catches real bugs, realistic scenarios
+**Cons**: ⚠️ Slower, requires DB, harder to debug
+
+→ **Templates**: `/templates/shared/tests/integration-test.template.cs` (new)
+
+### C) BDD with Gherkin/SpecFlow (Behavior-Driven Development)
+```gherkin
+# Feature: User Management
+Feature: User Creation
+  As a user management system
+  I want to create new users
+  So that I can manage user accounts
+
+  Scenario: Create valid user
+    Given I have a valid user data
+      | Name  | Email              |
+      | John  | john@example.com   |
+    When I create a new user
+    Then the user should be created successfully
+    And the user ID should be returned
+    And the user should be in the database
+```
+
+Translated to C# with SpecFlow:
+```csharp
+[Binding]
+public class UserCreationSteps
+{
+    private UserDto _userData;
+    private int _createdUserId;
+    
+    [Given("I have a valid user data")]
+    public void GivenValidUserData(Table table)
+    {
+        var row = table.Rows.First();
+        _userData = new UserDto 
+        { 
+            Name = row["Name"], 
+            Email = row["Email"] 
+        };
+    }
+    
+    [When("I create a new user")]
+    public async Task WhenCreateUser()
+    {
+        _createdUserId = await _userService.CreateUserAsync(_userData);
+    }
+    
+    [Then("the user should be created successfully")]
+    public void ThenUserCreatedSuccessfully()
+    {
+        Assert.True(_createdUserId > 0);
+    }
+}
+```
+
+✅ **Choose if:**
+- Want **business-readable tests**
+- Non-technical stakeholders need to understand tests
+- Complex business scenarios to document
+- Behavior-driven development (BDD) approach
+- Tests as living documentation
+- Acceptance criteria from user stories
+
+**Pros**: 📖 Human-readable, stakeholder engagement, documentation
+**Cons**: ⚠️ More setup, SpecFlow license, slower execution
+
+**Framework**: SpecFlow (NuGet: SpecFlow)
+
+→ **Read**: `/docs/tdd-xunit/bdd-gherkin.md` (new)
+→ **Template**: `/templates/shared/tests/bdd-gherkin.template.feature` (new)
+→ **Example**: Gherkin scenarios with SpecFlow
+
+### D) API/Acceptance Tests (End-to-End)
+```csharp
+// Test HTTP endpoints directly
+[Fact]
+public async Task PostUser_WithValidPayload_Returns201Created()
+{
+    // Arrange
+    var client = _factory.CreateClient();
+    var createUserDto = new CreateUserDto { Name = "John" };
+    
+    // Act
+    var response = await client.PostAsJsonAsync("/api/users", createUserDto);
+    
+    // Assert
+    Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+    var user = await response.Content.ReadAsAsync<UserDto>();
+    Assert.NotNull(user.Id);
+}
+```
+
+✅ **Choose if:**
+- Testing complete request/response cycles
+- Verifying HTTP status codes and headers
+- Testing middleware and filters
+- Real API contract testing
+- Including in CI/CD pipeline
+
+→ **Template**: `/templates/shared/tests/api-test.template.cs`
+
+### Testing Pyramid
+
+```
+        📄 Acceptance Tests (Few, slow)
+              /\
+             /  \
+            /    \
+          /        \
+        📋 Integration Tests (Some, medium)
+           /\
+          /  \
+         /    \
+        /      \
+      ⚡ Unit Tests (Many, fast)
+      /\
+     /  \
+    /    \
+```
+
+**Best Practice**: 
+- **70%** Unit tests (fast feedback)
+- **20%** Integration tests (catch bugs)
+- **10%** Acceptance tests (user experience)
 
 ---
 
-## Step 11: Swagger UI & Health Checks Configuration
+## Step 11: Mocking Strategy (For Unit Tests)
+
+**Question: How will you mock external dependencies in unit tests?**
+
+### A) No Mocking (Only for Simple Cases)
+✅ **Choose if:**
+- No external dependencies (pure functions)
+- Very simple, stateless logic
+- Learning tests without complexity
+- Prototyping quickly
+
+**Example**:
+```csharp
+[Fact]
+public void ValidateEmail_WithValidEmail_ReturnsTrue()
+{
+    var validator = new EmailValidator();
+    Assert.True(validator.IsValid("john@example.com"));
+}
+```
+
+### B) Moq (Most Popular)
+```csharp
+var mock = new Mock<IUserRepository>();
+mock.Setup(r => r.GetByIdAsync(1))
+    .ReturnsAsync(new User { Id = 1, Name = "John" });
+
+var result = mock.Object.GetByIdAsync(1);
+```
+
+✅ **Choose if:**
+- Most popular, great documentation
+- Fluent, readable syntax
+- Complete feature set
+- Large community support
+
+→ **Install**: `dotnet add package Moq`
+
+### C) NSubstitute (Simpler Syntax)
+```csharp
+var substitute = Substitute.For<IUserRepository>();
+substitute.GetByIdAsync(1)
+    .Returns(new User { Id = 1, Name = "John" });
+
+var result = substitute.GetByIdAsync(1);
+```
+
+✅ **Choose if:**
+- Prefer simpler, more intuitive syntax
+- Less ceremony in setup
+- Cleaner test code
+- Faster to write
+
+→ **Install**: `dotnet add package NSubstitute`
+
+### D) Fake Objects (Manual Mocks)
+```csharp
+public class FakeUserRepository : IUserRepository
+{
+    public async Task<User> GetByIdAsync(int id)
+    {
+        return new User { Id = id, Name = "Fake User" };
+    }
+}
+
+// In test:
+var fakeRepo = new FakeUserRepository();
+var service = new UserService(fakeRepo);
+```
+
+✅ **Choose if:**
+- Want complete control over behavior
+- Simple repository with few methods
+- Don't want external dependencies
+- Learning testing concepts
+
+**Pros**: ✅ No external library, full control
+**Cons**: ⚠️ More code to maintain
+
+### Mocking Best Practices
+
+| Practice | ✅ Do | ❌ Don't |
+|----------|--------|---------|
+| **Mock external services** | HTTP calls, DB | Business logic |
+| **Verify interactions** | Assert.Verify(Times.Once) | Over-verify |
+| **Setup realistic data** | Valid user objects | NULL or empty |
+| **Keep tests focused** | One behavior per test | Multiple assertions |
+| **Use constants** | Shared test data | Magic numbers |
+
+---
+
+## Step 12: Test Organization & Structure
+
+**Question: How will you organize your test projects?**
+
+### A) Single Test Project
+```
+Solution/
+├── MyApi/                          (Main project)
+│   ├── Controllers/
+│   ├── Services/
+│   └── Models/
+└── MyApi.Tests/                    (All tests here)
+    ├── Unit/
+    ├── Integration/
+    └── API/
+```
+
+✅ **Choose if:**
+- Small project
+- Simple structure
+- Quick to get started
+- All tests similar complexity
+
+### B) Multiple Test Projects (Recommended)
+```
+Solution/
+├── MyApi.Domain/                   (Domain layer)
+├── MyApi.Application/              (Application layer)
+├── MyApi.Infrastructure/           (Infrastructure layer)
+├── MyApi.Presentation/             (API layer)
+│
+├── MyApi.UnitTests/                (Unit tests only)
+├── MyApi.IntegrationTests/         (Integration tests)
+└── MyApi.AcceptanceTests/          (API/E2E tests)
+```
+
+✅ **Choose if:**
+- Medium to large projects
+- Clear layer testing responsibilities
+- Different teams own different test types
+- Separate test running/pipelines
+
+**Advantages**:
+- Clear ownership
+- Easy to skip test types in CI/CD
+- Better organization
+- Can have different dependencies per project
+
+### C) Feature-Based Structure
+```
+Tests/
+├── UserManagement/
+│   ├── CreateUserUnitTests.cs
+│   ├── CreateUserIntegrationTests.cs
+│   └── CreateUserAcceptanceTests.cs
+├── OrderManagement/
+│   ├── PlaceOrderUnitTests.cs
+│   ├── PlaceOrderIntegrationTests.cs
+│   └── PlaceOrderAcceptanceTests.cs
+```
+
+✅ **Choose if:**
+- DDD (Domain-Driven Design) approach
+- Feature-based project organization
+- All tests for feature in one folder
+- Clear feature boundaries
+
+---
+
+## Step 13: E2E Testing & API Simulation Strategy
+
+**Question: How will you test complete user workflows and API integration?**
+
+### A) No E2E Testing
+✅ **Choose if:**
+- Unit + Integration tests sufficient
+- Small project, simple workflows
+- No complex user journeys
+- Budget constraints (Playwright has licensing)
+
+**Impact**: Some edge cases may be missed in integration
+
+---
+
+### B) E2E Testing with Playwright (Browser Automation)
+```csharp
+// .NET Playwright tests
+[PlaywrightTest]
+public class UserWorkflowTests
+{
+    [Test]
+    public async Task UserRegistrationFlow()
+    {
+        // Test complete user journey in browser
+        var page = await Browser.NewPageAsync();
+        await page.GotoAsync("https://localhost:7000");
+        await page.FillAsync("input[name='email']", "user@example.com");
+        await page.FillAsync("input[name='password']", "SecurePass123!");
+        await page.ClickAsync("button:has-text('Register')");
+        await Expect(page).ToHaveURLAsync(new Regex(".*/profile"));
+    }
+}
+```
+
+✅ **Choose if:**
+- Web UI exists or planned
+- Need to test browser interactions
+- Complete user journey validation
+- Visual regression testing needed
+- Cross-browser compatibility important
+
+**Pros**: 
+- ⚡ Tests real browser behavior
+- 📱 Cross-browser testing (Chrome, Firefox, Safari)
+- 🎬 Record and playback capabilities
+- 📸 Screenshots for debugging
+- 🔍 Visual regression detection
+
+**Cons**: 
+- ⚠️ Slower than unit/integration tests
+- ⚠️ More brittle (selectors change)
+- ⚠️ Requires running browser instances
+- ⚠️ Licensing costs for commercial use
+
+→ **Read**: `/docs/e2e-testing/playwright-guide.md` (new)
+→ **Template**: `/templates/shared/e2e/playwright-tests.template.cs` (new)
+
+---
+
+### C) API Request Simulator (Console CLI Tool)
+```csharp
+// Interactive CLI simulator - test all API endpoints
+// Run: dotnet run --project src/YourApi.Simulator
+// 
+// Menu:
+// 1. Test User Registration
+// 2. Test User Login
+// 3. Test Create Order
+// 4. Test Payment Processing
+// 5. View all requests/responses
+// 6. Export test results
+// 7. Exit
+
+// Example workflow in console:
+> 1  // Select "Test User Registration"
+> Email: john@example.com
+> Password: SecurePass123!
+> [Request sent to: POST /api/auth/register]
+> [Response: 201 Created]
+> User ID: 123
+> 
+> 2  // Select "Test User Login"
+> Email: john@example.com
+> Password: SecurePass123!
+> [Request sent to: POST /api/auth/login]
+> [Response: 200 OK]
+> JWT Token: eyJhbGciOiJIUzI1NiIs...
+```
+
+✅ **Choose if:**
+- No web UI (API-only or mobile client)
+- Want to replay all API workflows
+- Need automated request testing
+- Want to document all flows
+- Simple, maintainable testing approach
+- No browser automation needed
+
+**Pros**: 
+- ⚡ Fast (no browser overhead)
+- 🎯 Focused on API testing
+- 📝 Easy to document requests/responses
+- 🔄 Simple to record new scenarios
+- 💾 Export results as JSON/CSV
+- 🎨 Console UI interactive
+- ✅ No external dependencies (no Playwright)
+
+**Cons**: 
+- ❌ No UI/visual testing
+- ❌ Manual creation of workflows
+- ⚠️ More code to maintain
+
+**Included in Simulator**:
+- Interactive menu system
+- HTTP request builder
+- Response validation
+- JSON payload support
+- JWT token management
+- Test result history
+- Export capabilities (CSV, JSON)
+- Concurrent request testing
+- Performance metrics
+
+→ **Read**: `/docs/e2e-testing/api-simulator-guide.md` (new)
+→ **Template**: `/templates/shared/e2e/api-request-simulator.template.cs` (new)
+
+---
+
+### D) Both E2E & API Simulator
+✅ **Choose if:**
+- Web UI + API both important
+- Want comprehensive coverage
+- Browser + API testing needed
+- Budget allows
+- Complex system with many scenarios
+
+**Usage**:
+- **Playwright**: User-facing UI tests
+- **Simulator**: Backend API workflow tests
+- Together: Complete system validation
+
+---
+
+## Comparison: E2E vs Simulator
+
+| Aspect | Playwright E2E | API Simulator |
+|--------|---|---|
+| **Speed** | Slower (browser) | ⚡⚡⚡ Fast |
+| **Test UI** | ✅ Yes | ❌ No |
+| **Test API** | ✅ Yes (via UI) | ✅ Yes (direct) |
+| **Setup Complexity** | Medium | Low |
+| **Maintenance** | Higher (selectors) | Lower |
+| **Browser Automation** | ✅ Full | ❌ N/A |
+| **Cross-browser** | ✅ Chrome/Firefox/Safari | ❌ N/A |
+| **Visual Testing** | ✅ Yes | ❌ No |
+| **Documentation** | Test code is doc | Console menu is doc |
+| **For API-only** | Overkill | Perfect |
+| **For Web+API** | Best | Supplementary |
+| **Cost** | $ (licensing) | Free |
+| **Learning curve** | Medium | Low |
+
+**Recommendation**:
+- **API-only services**: Use Simulator ✅
+- **Web + API**: Use Playwright ✅
+- **Complex system**: Use Both ✅✅
+
+---
+
+## Step 14: Swagger UI & Health Checks Configuration
 
 **Question: How will you expose your API documentation and health status?**
 
@@ -585,6 +1088,8 @@ public void CreateUser_WithInvalidEmail_ThrowsException(string email)
 
 **Impact**: Clients need to reference separate documentation
 **Startup**: White page on root path (need to document endpoints)
+
+---
 
 ### B) Swagger UI as Default Landing Page (Recommended)
 ```csharp
@@ -685,36 +1190,219 @@ app.UseSwaggerUI(options =>
 
 ---
 
-## Step 12: Your Complete Path
+## Step 15: Project Documentation Setup (Optional)
 
-### Path Summary
+**Question: Do you want to create project documentation templates?**
+
+### A) Skip Documentation Setup
+✅ **Choose if:**
+- Small project (just you)
+- Documentation not needed
+- Adding later manually
+- Team already has templates
+
+### B) Create Documentation Folder (Recommended) ✅
+✅ **Choose if:**
+- Want organized documentation
+- Team/open source project
+- Need onboarding guides
+- PR template for consistency
+- Share architecture decisions
+
+**Creates `/documents` folder with:**
+
+1. **ARCHITECTURE.md** - Project architecture overview
+   - Layer explanations
+   - Design patterns used
+   - Technology decisions (why Dapper vs EF, why Redis, etc.)
+   - Database schema overview
+   - API endpoints summary
+
+2. **DEVELOPER_ONBOARDING.md** - New developer guide
+   - Prerequisites (SDK, tools, databases)
+   - Setup instructions (clone, build, run)
+   - Project structure walkthrough
+   - Common development tasks
+   - Debugging tips
+   - Testing strategy
+   - Code style guidelines
+   - Deployment process
+
+3. **PULL_REQUEST_TEMPLATE.md** - GitHub PR template
+   - Description section
+   - Type of change (Bug, Feature, Docs)
+   - Testing checklist
+   - Architecture checklist
+   - Breaking changes
+   - Screenshots (if UI changes)
+
+→ **Copy templates from**: `/templates/shared/documents/`
+
+### Folder Structure Created
+
+```
+project-root/
+├── documents/
+│   ├── ARCHITECTURE.md          ← Design & decisions
+│   ├── DEVELOPER_ONBOARDING.md  ← Getting started guide
+│   ├── PULL_REQUEST_TEMPLATE.md ← PR guidelines
+│   ├── API_ENDPOINTS.md         ← API reference
+│   ├── DATABASE_SCHEMA.md       ← Data model
+│   └── TROUBLESHOOTING.md       ← Common issues
+└── .github/
+    └── PULL_REQUEST_TEMPLATE.md ← GitHub PR template
+```
+
+### What Gets Documented
+
+**ARCHITECTURE.md covers:**
+- Project overview
+- Layer responsibilities (Onion Architecture)
+- Technology choices with rationale
+- Database design
+- API style (REST/RESTful/GraphQL)
+- Caching strategy
+- Error handling approach
+- Testing strategy
+- Deployment architecture
+
+**DEVELOPER_ONBOARDING.md covers:**
+- System requirements
+- Installation steps
+- First run instructions
+- Project structure walkthrough
+- IDE setup
+- Running tests
+- Common commands
+- Debugging
+- Code style
+- Creating your first PR
+
+**PULL_REQUEST_TEMPLATE.md covers:**
+- Description of changes
+- Type of change (check boxes)
+- Related issues
+- Testing checklist
+- Architecture review checklist
+- Breaking changes
+- Screenshots/demos
+- Deployment notes
+
+---
+
+## Step 16: Your Complete Path
+
+### Full Project Setup Workflow
 
 Based on your answers, follow this path:
 
-1. **Read**: `/docs/architecture/onion-architecture.md` (all projects)
-2. **Read**: API style guide (`/docs/api-styles/{your-style}/`)
-3. **Copy**: Template from `/templates/{your-style}/{your-type}/`
-4. **Study**: Example from `/examples/{your-style}/{your-type}/`
-5. **Setup**: ORM from `/templates/shared/repositories/`
-6. **Add**: Resilience if needed (`/templates/shared/resilience/`)
-7. **Add**: Caching if needed (`/templates/shared/caching/`)
-8. **Setup**: Swagger UI + Health Checks (`/docs/middleware/swagger-health-checks.md`)
-9. **Setup**: Tests with `/templates/shared/tests/`
-10. **Verify**: Run checklist from `/checklists/architecture-audit.md`
+1. **Architecture Foundations**
+   - Read: `/docs/architecture/onion-architecture.md`
+   - Read: API style guide (`/docs/api-styles/{your-style}/`)
+
+2. **Project Templates**
+   - Copy: Template from `/templates/{your-style}/{your-type}/`
+   - Study: Example from `/examples/{your-style}/{your-type}/`
+
+3. **Data Access Layer**
+   - Setup: ORM from `/templates/shared/repositories/`
+   - Read: ORM comparison guide
+
+4. **Infrastructure & Resilience**
+   - Add: Resilience if needed (`/templates/shared/resilience/polly-setup.template.cs`)
+   - Add: Caching if needed (`/templates/shared/caching/`)
+
+5. **Testing Strategy**
+   - Plan: Testing approach (Unit, Integration, BDD, API)
+   - Choose: Mocking library (Moq, NSubstitute, Fake objects)
+   - Organize: Test projects structure
+   - Setup: Test templates from `/templates/shared/tests/`
+
+6. **E2E Testing & Simulation** (Optional)
+   - Choose: Playwright (browser automation) OR API Simulator (console CLI)
+   - Setup: E2E templates from `/templates/shared/e2e/`
+   - Document: All user workflows and API scenarios
+
+7. **API Configuration**
+   - Setup: Swagger UI + Health Checks (`/docs/middleware/swagger-health-checks.md`)
+   - Use: Program.cs template (`/templates/shared/middleware/program-swagger-health.template.cs`)
+
+8. **Validation & Quality**
+   - Verify: Architecture checklist (`/checklists/architecture-audit.md`)
+   - Run: All tests (unit, integration, E2E)
+   - Check: Code coverage (target 70% unit tests)
+
+9. **Documentation (Optional)**
+   - Create: `/documents` folder
+   - Copy: `ARCHITECTURE.md` template
+   - Copy: `DEVELOPER_ONBOARDING.md` template
+   - Copy: `PULL_REQUEST_TEMPLATE.md` template
+   - Customize for your project
+
+### Quick Commands
+
+```bash
+# Setup project structure
+mkdir -p src/{Domain,Application,Infrastructure,Presentation}
+mkdir -p tests/{Unit,Integration,Acceptance}
+mkdir -p documents
+
+# Create solution
+dotnet new sln
+
+# Add projects
+dotnet new classlib -n YourApi.Domain
+dotnet new classlib -n YourApi.Application
+dotnet new classlib -n YourApi.Infrastructure
+dotnet new webapi -n YourApi.Presentation
+dotnet new xunit -n YourApi.UnitTests
+
+# Install essential packages
+dotnet add YourApi.Presentation package Swashbuckle.AspNetCore
+dotnet add YourApi.Presentation package AspNetCore.HealthChecks.UI
+dotnet add YourApi.UnitTests package Moq
+dotnet add YourApi.UnitTests package FluentAssertions
+
+# Run and test
+dotnet build
+dotnet test
+dotnet run --project src/YourApi.Presentation
+```
+
+### Success Checklist
+
+- ✅ Project structure follows Onion Architecture
+- ✅ All 4 layers present (Domain, Application, Infrastructure, Presentation)
+- ✅ Dependency injection configured in Program.cs
+- ✅ Swagger UI running at root path (`http://localhost:5000/`)
+- ✅ Health check endpoint at `/health`
+- ✅ Unit tests with mocks (70% coverage)
+- ✅ Integration tests with database
+- ✅ Architecture decisions documented
+- ✅ Developer onboarding guide created
+- ✅ PR template configured
+- ✅ All tests passing
+- ✅ No warnings in build output
 
 ---
 
 ## Quick Reference: Decision Matrix
 
-| Question | Choice A | Choice B | Choice C |
-|----------|----------|----------|----------|
-| **Project Type** | Microservice | Full REST API | Standalone |
-| **API Style** | REST | RESTful | GraphQL |
-| **Real-Time** | HTTP only | WebSockets | Both |
-| **ORM** | Dapper | EF Code-First | — |
-| **Resilience** | Basic | Polly | — |
-| **Cache** | None | In-Memory | Distributed |
-| **Protocol** | JSON | Protobuf | — |
+| Question | Choice A | Choice B | Choice C | Choice D |
+|----------|----------|----------|----------|----------|
+| **Project Type** | Microservice | Full REST API | Standalone | — |
+| **API Style** | REST | RESTful | GraphQL | — |
+| **Real-Time** | HTTP only | WebSockets | Both | — |
+| **Database** | SQL Server | SQLite | LiteDB | Hybrid |
+| **CQRS** | Traditional | CQRS Pattern | — | — |
+| **ORM** | Dapper | EF Code-First | — | — |
+| **Resilience** | Basic | Polly | — | — |
+| **Cache** | None | In-Memory | Distributed | Hybrid |
+| **Protocol** | JSON | Protobuf | — | — |
+| **Testing** | Unit Tests | Integration | BDD/Gherkin | API Tests |
+| **Mocking** | None | Moq | NSubstitute | Fake Objects |
+| **Test Structure** | Single Project | Multiple Projects | Feature-Based | — |
+| **Swagger** | None | Default Page | Custom Brand | — |
 
 ---
 
