@@ -188,7 +188,70 @@ query GetOrderWithItems($id: ID!) {
 
 ---
 
-## Step 5: Data Persistence Strategy (For SQL Databases)
+## Step 5: CQRS Pattern (For SQL Databases Only)
+
+**Question: Will you use CQRS (Command Query Responsibility Segregation)?**
+
+### A) Traditional Architecture (No CQRS)
+✅ **Choose if:**
+- Simple CRUD operations (Create, Read, Update, Delete)
+- Same models for reading and writing
+- Monolithic service
+- Quick prototyping
+- Simple to moderate complexity
+- Team unfamiliar with CQRS
+
+**Structure:**
+```
+Controllers → Services → Repositories → Single Database
+(One model for read and write)
+```
+
+**Best for**: CRUD APIs, simple microservices, learning projects
+
+→ **Continue with Step 6**
+
+### B) CQRS Pattern (Separated Read/Write)
+✅ **Choose if:**
+- Complex business logic (many validations, rules)
+- Heavy read operations vs writes (different optimization)
+- Need event sourcing
+- Multiple read models needed
+- Different schemas for read/write beneficial
+- Scaling reads independently
+
+**Structure:**
+```
+Write Side (Commands):              Read Side (Queries):
+Controllers → Commands             Controllers → Queries
+    ↓                                   ↓
+Services → Repositories             Services → Read Models
+    ↓                                   ↓
+Write Database ←→ Event Stream ←→ Read Database
+(Normalized)          (Audit)       (Denormalized)
+```
+
+**Example:**
+```csharp
+// Command: Create order (normalized write model)
+public class CreateOrderCommand { ... }
+
+// Query: Get order summary (denormalized read model)
+public class GetOrderSummaryQuery { ... }
+
+// Separate handlers
+public class CreateOrderCommandHandler { ... }
+public class GetOrderSummaryQueryHandler { ... }
+```
+
+**Best for**: Complex domains, DDD (Domain-Driven Design), event sourcing, complex reporting
+
+→ **Read**: `/docs/architecture/cqrs-guide.md`
+→ **Templates**: `/templates/shared/cqrs/`
+
+---
+
+## Step 6: Data Persistence Strategy (For SQL Databases)
 
 **Question: How will you handle data persistence with SQL?**
 
@@ -245,7 +308,7 @@ var user = await _context.Users
 
 ---
 
-## Step 6: Resilience & Error Handling
+## Step 7: Resilience & Error Handling
 
 **Question: Does your API need resilience patterns for distributed scenarios?**
 
@@ -282,7 +345,7 @@ await policy.ExecuteAsync(() => _httpClient.GetAsync(url));
 
 ---
 
-## Step 7: Caching Strategy
+## Step 8: Caching Strategy
 
 **Question: Do you need caching for performance?**
 
@@ -327,7 +390,7 @@ var cachedUsers = await _distributedCache.GetAsync("users:list");
 
 ---
 
-## Step 8: Serialization & Protocol
+## Step 9: Serialization & Protocol
 
 **Question: How will data be serialized over the wire?**
 
@@ -366,7 +429,7 @@ message User {
 
 ---
 
-## Step 9: Testing Strategy
+## Step 10: Testing Strategy
 
 **Question: How will you verify correctness?**
 
@@ -400,7 +463,7 @@ public void CreateUser_WithInvalidEmail_ThrowsException(string email)
 
 ---
 
-## Step 10: Your Complete Path
+## Step 11: Your Complete Path
 
 ### Path Summary
 
