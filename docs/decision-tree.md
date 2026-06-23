@@ -572,7 +572,120 @@ public void CreateUser_WithInvalidEmail_ThrowsException(string email)
 
 ---
 
-## Step 11: Your Complete Path
+## Step 11: Swagger UI & Health Checks Configuration
+
+**Question: How will you expose your API documentation and health status?**
+
+### A) No Swagger (Production Only)
+✅ **Choose if:**
+- Production environment only
+- No development/testing needed
+- Security concerns about exposing API surface
+- Documentation maintained separately
+
+**Impact**: Clients need to reference separate documentation
+**Startup**: White page on root path (need to document endpoints)
+
+### B) Swagger UI as Default Landing Page (Recommended)
+```csharp
+// Swagger appears at root: http://localhost:5000/
+app.UseSwaggerUI(options =>
+{
+    options.RoutePrefix = string.Empty;  // Root path
+});
+```
+
+✅ **Choose if:**
+- Development or testing environment
+- Want self-documenting API
+- Interactive API testing (try-it-out feature)
+- Automated client generation
+- Team collaboration on endpoints
+
+**Startup Experience**:
+- App starts → Swagger UI loads immediately
+- Health check available at `/health`
+- Links to API documentation
+- **No white page confusion!**
+
+**Setup Requirements**:
+- Swagger middleware enabled
+- Health check endpoint configured
+- Clear startup message showing URLs
+
+→ **Read**: `/docs/middleware/swagger-health-checks.md`
+→ **Template**: `/templates/shared/middleware/program-swagger-health.template.cs`
+→ **Appsettings**: Include health check configuration
+
+### C) Swagger + Custom Branding
+```csharp
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "My API v1");
+    options.RoutePrefix = string.Empty;
+    options.DocumentTitle = "My Company API Docs";
+    options.InjectStylesheet("/custom-swagger.css");
+});
+```
+
+✅ **Choose if:**
+- Want branded documentation
+- Multiple API versions
+- Custom styling to match company brand
+- Need to remove Swagger branding
+
+---
+
+## Port Configuration
+
+**Question: How should your API configure the listening port?**
+
+### Default Port Options
+- **.NET Default**: 5000 (HTTP), 5001 (HTTPS)
+- **HTTP Standard**: 80
+- **HTTPS Standard**: 443
+- **Custom**: Any available port
+
+### Configuration Priority (Highest to Lowest)
+1. **Environment Variable** (recommended for Docker/cloud)
+   ```bash
+   export PORT=8080
+   dotnet run
+   ```
+
+2. **Command Line Argument**
+   ```bash
+   dotnet run -- --port 8080
+   ```
+
+3. **appsettings.json**
+   ```json
+   { "PORT": 5000 }
+   ```
+
+4. **Code Default**
+   ```csharp
+   var port = configuration.GetValue<int?>("PORT") ?? 5000;
+   ```
+
+### Startup Message Example
+```
+╔════════════════════════════════════╗
+║        API Started Successfully    ║
+╚════════════════════════════════════╝
+
+🌍 Environment:  Development
+🔌 Port:         5000
+🌐 Base URL:     http://localhost:5000
+📄 Swagger:      http://localhost:5000/
+❤️  Health:       http://localhost:5000/health
+
+════════════════════════════════════
+```
+
+---
+
+## Step 12: Your Complete Path
 
 ### Path Summary
 
@@ -585,8 +698,9 @@ Based on your answers, follow this path:
 5. **Setup**: ORM from `/templates/shared/repositories/`
 6. **Add**: Resilience if needed (`/templates/shared/resilience/`)
 7. **Add**: Caching if needed (`/templates/shared/caching/`)
-8. **Setup**: Tests with `/templates/shared/tests/`
-9. **Verify**: Run checklist from `/checklists/architecture-audit.md`
+8. **Setup**: Swagger UI + Health Checks (`/docs/middleware/swagger-health-checks.md`)
+9. **Setup**: Tests with `/templates/shared/tests/`
+10. **Verify**: Run checklist from `/checklists/architecture-audit.md`
 
 ---
 
