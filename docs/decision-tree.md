@@ -1327,17 +1327,34 @@ Based on your answers, follow this path:
    - Setup: Swagger UI + Health Checks (`/docs/middleware/swagger-health-checks.md`)
    - Use: Program.cs template (`/templates/shared/middleware/program-swagger-health.template.cs`)
 
-8. **Validation & Quality**
-   - Verify: Architecture checklist (`/checklists/architecture-audit.md`)
-   - Run: All tests (unit, integration, E2E)
-   - Check: Code coverage (target 70% unit tests)
+8. **Test Project Connection** (CRITICAL - Tests Won't Run Without This!)
+   - Follow: `/docs/tdd-xunit/test-project-setup.md` (Complete guide)
+   - Add test projects to solution: `dotnet sln add tests/YourApi.UnitTests/YourApi.UnitTests.csproj`
+   - Add project references: `dotnet add reference ../../src/Domain/YourApi.Domain.csproj`
+   - Verify tests discovered: `dotnet test --list-tests` (Should show all tests)
+   - Verify tests run: `dotnet test` (All should pass, none skipped)
 
-9. **Documentation (Optional)**
-   - Create: `/documents` folder
-   - Copy: `ARCHITECTURE.md` template
-   - Copy: `DEVELOPER_ONBOARDING.md` template
-   - Copy: `PULL_REQUEST_TEMPLATE.md` template
-   - Customize for your project
+9. **Test Coverage Validation**
+   - Ensure all generated code has tests
+   - Follow: `/docs/tdd-xunit/test-coverage-validation.md` (Complete guide)
+   - Domain layer: Aim for 85%+ coverage
+   - Application layer: Aim for 75%+ coverage
+   - Run with coverage: `dotnet test /p:CollectCoverage=true`
+   - Generate report: `reportgenerator -reports:coverage.opencover.xml`
+
+10. **Final Validation & Quality**
+    - Verify: Architecture checklist (`/checklists/architecture-audit.md`)
+    - Run: All tests (unit, integration, E2E): `dotnet test`
+    - Check: Code coverage (target 70% overall)
+    - Check: No test warnings or skipped tests
+    - Build: `dotnet build` (no warnings)
+
+11. **Documentation (Optional)**
+    - Create: `/documents` folder
+    - Copy: `ARCHITECTURE.md` template
+    - Copy: `DEVELOPER_ONBOARDING.md` template
+    - Copy: `PULL_REQUEST_TEMPLATE.md` template
+    - Customize for your project
 
 ### Quick Commands
 

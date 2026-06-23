@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Health Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .status-section {
+            margin-bottom: 35px;
+        }
+
+        .status-title {
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .status-item:hover {
+            background: #f0f0f0;
+            border-left-color: #667eea;
+        }
+
+        .status-icon {
+            font-size: 20px;
+            margin-right: 12px;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .status-info {
+            flex: 1;
+        }
+
+        .status-name {
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .status-value {
+            color: #999;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .health-check-button {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .health-check-button:hover {
+            background: #f0f0f0;
+            border-left-color: #667eea;
+        }
+
+        .health-check-button.loading {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .health-check-button.healthy {
+            border-left-color: #4caf50;
+        }
+
+        .health-check-button.unhealthy {
+            border-left-color: #f44336;
+        }
+
+        .health-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.healthy {
+            background: #4caf50;
+        }
+
+        .status-dot.unhealthy {
+            background: #f44336;
+        }
+
+        .status-dot.loading {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .links {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .link-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .link-button.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .link-button.primary:hover {
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .link-button.secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+
+        .link-button.secondary:hover {
+            background: #e0e0e0;
+            border-color: #667eea;
+        }
+
+        .info-box {
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .info-box-title {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .info-box-content {
+            color: #333;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .info-box-content code {
+            background: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            color: #667eea;
+        }
+
+        .timestamp {
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .error {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #4caf50;
+            color: #155724;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🚀</div>
+            <h1>API Dashboard</h1>
+            <p class="subtitle">Health Check & Status</p>
+        </div>
+
+        <div class="status-section">
+            <div class="status-title">System Status</div>
+
+            <button class="health-check-button" id="healthCheckBtn">
+                <div class="status-health">
+                    <div class="status-name">Overall Health</div>
+                    <div class="status-value">Click to check</div>
+                </div>
+                <div class="status-health">
+                    <span class="status-dot loading"></span>
+                </div>
+            </button>
+
+            <div id="healthDetails" style="display: none; margin-top: 15px;"></div>
+        </div>
+
+        <div class="status-section">
+            <div class="status-title">Quick Info</div>
+
+            <div class="status-item">
+                <div class="status-icon">📱</div>
+                <div class="status-info">
+                    <div class="status-name">API Version</div>
+                    <div class="status-value">v1.0</div>
+                </div>
+            </div>
+
+            <div class="status-item">
+                <div class="status-icon">⚙️</div>
+                <div class="status-info">
+                    <div class="status-name">Environment</div>
+                    <div class="status-value" id="environment">Production</div>
+                </div>
+            </div>
+
+            <div class="status-item">
+                <div class="status-icon">🌐</div>
+                <div class="status-info">
+                    <div class="status-name">API Endpoint</div>
+                    <div class="status-value" id="endpoint">
+                        <code id="endpointUrl"></code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="links">
+            <a href="/swagger/v1/swagger.json" class="link-button secondary">
+                📋 OpenAPI Spec
+            </a>
+            <a href="/health" class="link-button secondary">
+                ❤️ Health Check
+            </a>
+        </div>
+
+        <div class="info-box">
+            <div class="info-box-title">ℹ️ Information</div>
+            <div class="info-box-content">
+                <strong>Health Check Endpoint:</strong><br>
+                <code>GET /health</code><br><br>
+                <strong>API Documentation:</strong><br>
+                Check the OpenAPI spec for all available endpoints.
+            </div>
+        </div>
+
+        <div class="timestamp">
+            Last refreshed: <span id="refreshTime">-</span>
+        </div>
+    </div>
+
+    <script>
+        // Set endpoint
+        document.getElementById('endpointUrl').textContent = window.location.origin;
+
+        // Health check button
+        const healthCheckBtn = document.getElementById('healthCheckBtn');
+        const healthDetails = document.getElementById('healthDetails');
+
+        healthCheckBtn.addEventListener('click', async () => {
+            try {
+                healthCheckBtn.classList.add('loading');
+                const response = await fetch('/health');
+                const data = await response.json();
+
+                // Update button styling
+                if (response.ok && data.status === 'Healthy') {
+                    healthCheckBtn.classList.add('healthy');
+                    healthCheckBtn.classList.remove('unhealthy');
+                    healthCheckBtn.querySelector('.status-dot').classList.add('healthy');
+                    healthCheckBtn.querySelector('.status-dot').classList.remove('unhealthy');
+                    healthCheckBtn.querySelector('.status-value').textContent = '✓ Healthy';
+                } else {
+                    healthCheckBtn.classList.add('unhealthy');
+                    healthCheckBtn.classList.remove('healthy');
+                    healthCheckBtn.querySelector('.status-dot').classList.add('unhealthy');
+                    healthCheckBtn.querySelector('.status-dot').classList.remove('healthy');
+                    healthCheckBtn.querySelector('.status-value').textContent = '✗ Unhealthy';
+                }
+
+                // Show details
+                healthDetails.innerHTML = `
+                    <div class="status-item">
+                        <div class="status-icon">${response.ok ? '✓' : '✗'}</div>
+                        <div class="status-info">
+                            <div class="status-name">Status</div>
+                            <div class="status-value">${data.status}</div>
+                        </div>
+                    </div>
+                    ${data.checks ? `
+                        <div class="status-item">
+                            <div class="status-icon">🔍</div>
+                            <div class="status-info">
+                                <div class="status-name">Checks</div>
+                                <div class="status-value">
+                                    ${Object.entries(data.checks)
+                                        .map(([key, val]) => `${key}: ${val.status}`)
+                                        .join(', ')}
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    ${data.totalDuration ? `
+                        <div class="status-item">
+                            <div class="status-icon">⏱️</div>
+                            <div class="status-info">
+                                <div class="status-name">Response Time</div>
+                                <div class="status-value">${data.totalDuration}</div>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+                healthDetails.style.display = 'block';
+
+                // Update timestamp
+                document.getElementById('refreshTime').textContent = new Date().toLocaleTimeString();
+            } catch (error) {
+                healthCheckBtn.classList.remove('loading');
+                healthDetails.innerHTML = `
+                    <div class="error">
+                        ⚠️ Could not reach health check endpoint: ${error.message}
+                    </div>
+                `;
+                healthDetails.style.display = 'block';
+            } finally {
+                healthCheckBtn.classList.remove('loading');
+            }
+        });
+
+        // Auto-check health on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                healthCheckBtn.click();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

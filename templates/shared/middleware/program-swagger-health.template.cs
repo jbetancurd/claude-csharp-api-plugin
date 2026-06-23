@@ -1,5 +1,5 @@
 // Template: Program.cs with Swagger UI & Health Checks
-// Default landing page, health check endpoint, configurable port
+// Default landing page at root, health check endpoint, configurable port
 
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -73,7 +73,7 @@ builder.Services.AddHealthChecks()
     // Self check
     .AddCheck("self", () => HealthCheckResult.Healthy("API is running"))
 
-    // Database check (SQL Server example)
+    // Database check (SQL Server example) - Comment out if not using SQL Server
     .AddSqlServer(
         connectionString: builder.Configuration.GetConnectionString("DefaultConnection") ?? "",
         name: "database",
@@ -96,52 +96,102 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Add static files to serve default.html
+builder.Services.AddStaticFiles();
+
 var app = builder.Build();
 
-// ============ MIDDLEWARE PIPELINE ============
+// ============ MIDDLEWARE PIPELINE (ORDER MATTERS!) ============
 
-// CORS
+// 1. HTTPS Redirect (first, before any other middleware)
+app.UseHttpsRedirection();
+
+// 2. CORS (before auth and endpoints)
 app.UseCors("AllowAll");
 
-// Health checks endpoint
-// Available at: /health or /health/ready or /health/live
+// 3. Static files (serve default.html at root in production)
+if (!app.Environment.IsDevelopment())
+{
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        DefaultContentType = "text/html"
+    });
+}
+
+// 4. Swagger UI - only in development
+if (app.Environment.IsDevelopment())
+{
+    // Enable Swagger middleware (must come before default file route)
+    app.UseSwagger(options =>
+    {
+        options.RouteTemplate = "swagger/{documentName}/swagger.json";
+    });
+
+    // Configure Swagger UI as root landing page
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
+
+        // IMPORTANT: Set empty string to make Swagger UI default at root
+        options.RoutePrefix = string.Empty;
+
+        // Swagger UI customization
+        options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
+        options.DefaultModelsExpandDepth(1);
+        options.DisplayRequestDuration();
+        options.EnableDeepLinking();
+        options.CustomHeadContent = "<title>API Documentation</title>";
+    });
+}
+else
+{
+    // Production: Serve default.html at root
+    app.UseDefaultFiles(new DefaultFilesOptions
+    {
+        DefaultFileNames = new List<string> { "default.html" }
+    });
+    app.UseStaticFiles();
+}
+
+// 5. Authorization (before endpoints)
+app.UseAuthorization();
+
+// 6. Health check endpoint - Map BEFORE controllers
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
     AllowCachingResponses = false
 });
 
-// Swagger UI - only in development
-if (app.Environment.IsDevelopment())
+// Also add JSON health check endpoint
+app.MapHealthChecks("/api/health", new HealthCheckOptions
 {
-    // Enable Swagger middleware
-    app.UseSwagger(options =>
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+// 7. Map controllers (last)
+app.MapControllers();
+
+// 8. Fallback route (if no route matches, return default page or health check)
+if (!app.Environment.IsDevelopment())
+{
+    app.MapFallback(async context =>
     {
-        options.RouteTemplate = "swagger/{documentName}/swagger.json";
-    });
-
-    // Configure Swagger UI
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
-
-        // Set Swagger UI as default landing page (root path)
-        options.RoutePrefix = string.Empty;
-
-        // Swagger UI settings
-        options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
-        options.DefaultModelsExpandDepth(1);
-        options.DisplayRequestDuration();
-        options.EnableDeepLinking();
+        // If requesting root, return default.html
+        if (context.Request.Path == "/")
+        {
+            context.Response.ContentType = "text/html; charset=utf-8";
+            await context.Response.SendFileAsync(
+                Path.Combine(app.Environment.WebRootPath, "default.html")
+            );
+        }
+        else
+        {
+            context.Response.StatusCode = 404;
+            await context.Response.WriteAsJsonAsync(new { error = "Not found" });
+        }
     });
 }
-
-// Standard middleware
-app.UseHttpsRedirection();
-app.UseAuthorization();
-
-// Map controllers
-app.MapControllers();
 
 // ============ STARTUP MESSAGE ============
 
@@ -154,8 +204,12 @@ var startupMessage = $@"
 🌍 Environment:  {environment}
 🔌 Port:         {port}
 🌐 Base URL:     http://localhost:{port}
-{(app.Environment.IsDevelopment() ? $@"📄 Swagger:      http://localhost:{port}/
-❤️  Health:       http://localhost:{port}/health" : "")}
+{(app.Environment.IsDevelopment()
+    ? $@"📄 Swagger UI:    http://localhost:{port}/ (root landing page)
+📊 API Docs:     http://localhost:{port}/swagger/v1/swagger.json
+❤️  Health Check:  http://localhost:{port}/health"
+    : $@"🏠 Home Page:     http://localhost:{port}/ (default.html)
+❤️  Health Check:  http://localhost:{port}/health")}
 
 ════════════════════════════════════
 ";
@@ -164,7 +218,7 @@ Console.WriteLine(startupMessage);
 
 app.Run();
 
-// ============ OPTIONAL: HELPER METHODS ============
+// ============ OPTIONAL: CUSTOM HEALTH CHECK ============
 
 // Example custom health check
 public class CustomHealthCheck : IHealthCheck
@@ -178,7 +232,9 @@ public class CustomHealthCheck : IHealthCheck
             // Add your health check logic here
             // Example: check external service, cache, etc.
 
-            return await Task.FromResult(HealthCheckResult.Healthy("All systems operational"));
+            return await Task.FromResult(
+                HealthCheckResult.Healthy("All systems operational")
+            );
         }
         catch (Exception ex)
         {
