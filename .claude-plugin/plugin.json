@@ -1,23 +1,45 @@
 {
   "name": "claude-csharp-api-plugin",
-  "description": "Comprehensive guide and templates for building production-grade C# APIs with SOLID, Onion Architecture, DRY, TDD with xUnit, and structured logging",
-  "version": "1.0.0",
+  "description": "Production-grade C# API architecture with C# version-aware guidance, SOLID principles, Onion Architecture, DRY, TDD, and coding conventions",
+  "version": "1.1.0",
   "author": {
     "name": "jbetancurd"
   },
   "license": "MIT",
   "keywords": [
     "csharp",
+    "csharp-version",
     "api",
     "architecture",
     "solid",
     "onion",
     "tdd",
     "xunit",
-    "serilog",
-    "polly"
+    "coding-conventions",
+    "polly",
+    "microservices",
+    "design-patterns"
   ],
   "category": "development",
-  "skills": ["./skills/jab-csharp-api-guidelines"]
+  "skills": ["./skills/jab-csharp-api-guidelines"],
+  "documentation": {
+    "guide": "CLAUDE.md",
+    "decisionTree": "docs/decision-tree.md",
+    "versionFeatures": "docs/csharp-versions/csharp-version-features.md",
+    "versionSelection": "docs/csharp-versions/version-selection-guide.md",
+    "quickStart": "QUICKSTART.md"
+  },
+  "features": [
+    "C# version-aware code generation (C# 12, 11, 10, 9, 8+)",
+    "Microsoft C# Coding Conventions compliance",
+    "Onion Architecture patterns",
+    "SOLID principles guidance",
+    "API decision tree (REST, RESTful, GraphQL)",
+    "ORM selection guide (Dapper vs EF)",
+    "TDD with xUnit templates",
+    "Polly resilience patterns",
+    "Caching strategies",
+    "Architecture audit checklists"
+  ]
 }
 
