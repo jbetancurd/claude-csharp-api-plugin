@@ -266,6 +266,14 @@ All subsequent decisions will be tailored to maximize your chosen version's capa
 - Needs independent deployment
 - Example: Order Service, User Service, Payment Service
 
+**⭐ Microservice-Specific Considerations:**
+- Will ask about **CQRS** (Step 6) for complex logic
+- Will ask about **Bootstrap pattern** for initialization
+- Event-driven communication with other services
+- Database per service principle
+- Distributed transactions and sagas
+
+→ **Read**: `/docs/architecture/microservice-patterns.md` (COMPREHENSIVE guide)
 → **Templates**: `/templates/*/microservice/`
 → **Examples**: `examples/*/[service]-microservice/`
 
@@ -573,14 +581,21 @@ Centralized user management across multiple apps
 
 **Question: Will you use CQRS (Command Query Responsibility Segregation)?**
 
+**⭐ Special Note for Microservices:**
+If you selected **Microservice** in Step 1, CQRS is often beneficial for:
+- Event-driven communication with other services
+- Complex business logic
+- Separate read and write optimization
+- Event sourcing for audit trail
+
 ### A) Traditional Architecture (No CQRS)
 ✅ **Choose if:**
 - Simple CRUD operations (Create, Read, Update, Delete)
 - Same models for reading and writing
-- Monolithic service
 - Quick prototyping
 - Simple to moderate complexity
 - Team unfamiliar with CQRS
+- Single developer / small team
 
 **Structure:**
 ```
@@ -590,44 +605,84 @@ Controllers → Services → Repositories → Single Database
 
 **Best for**: CRUD APIs, simple microservices, learning projects
 
-→ **Continue with Step 6**
+→ **Continue with Step 7**
 
-### B) CQRS Pattern (Separated Read/Write)
+### B) CQRS Pattern (Separated Read/Write) ⭐ Recommended for Microservices
 ✅ **Choose if:**
 - Complex business logic (many validations, rules)
 - Heavy read operations vs writes (different optimization)
-- Need event sourcing
+- Need event sourcing / audit trail
 - Multiple read models needed
 - Different schemas for read/write beneficial
+- **Microservice with event-driven architecture**
 - Scaling reads independently
+- Team size: 2+ developers
 
 **Structure:**
 ```
 Write Side (Commands):              Read Side (Queries):
 Controllers → Commands             Controllers → Queries
     ↓                                   ↓
-Services → Repositories             Services → Read Models
+Services → Event Handlers           Read Models
     ↓                                   ↓
-Write Database ←→ Event Stream ←→ Read Database
-(Normalized)          (Audit)       (Denormalized)
+Write Database → Event Store    ↔    Read Database
+(Normalized)     (Immutable)      (Denormalized/Cache)
 ```
 
 **Example:**
 ```csharp
-// Command: Create order (normalized write model)
-public class CreateOrderCommand { ... }
+// Command: Create order (write side)
+public class CreateOrderCommand(int UserId, List<OrderItem> Items);
 
-// Query: Get order summary (denormalized read model)
-public class GetOrderSummaryQuery { ... }
+public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, int>
+{
+    public async Task<int> HandleAsync(CreateOrderCommand command)
+    {
+        var order = Order.Create(command.UserId, command.Items);
+        await _repository.AddAsync(order);
+        await _eventPublisher.PublishAsync(order.GetEvents());
+        return order.Id;
+    }
+}
 
-// Separate handlers
-public class CreateOrderCommandHandler { ... }
-public class GetOrderSummaryQueryHandler { ... }
+// Query: Get order summary (read side)
+public class GetOrderSummaryQuery(int OrderId);
+
+public class GetOrderSummaryQueryHandler : IQueryHandler<GetOrderSummaryQuery, OrderSummaryDto>
+{
+    public async Task<OrderSummaryDto> HandleAsync(GetOrderSummaryQuery query)
+    {
+        return await _readRepository.GetOrderSummaryAsync(query.OrderId);
+    }
+}
+
+// Event Handler: Sync read model when order created
+public class OrderCreatedEventHandler : IEventHandler<OrderCreatedEvent>
+{
+    public async Task HandleAsync(OrderCreatedEvent @event)
+    {
+        var summary = new OrderSummary 
+        { 
+            Id = @event.OrderId, 
+            Status = "Created",
+            Total = @event.Total
+        };
+        await _readRepository.AddAsync(summary);
+    }
+}
 ```
 
-**Best for**: Complex domains, DDD (Domain-Driven Design), event sourcing, complex reporting
+**Microservice Benefits**:
+- 🎯 Events published to event bus → Other services consume
+- 📊 Separate optimization for reads vs writes
+- 🔄 Audit trail via event store
+- ⚡ Scale read model independently
+- 🔐 Strong consistency on write side
 
-→ **Read**: `/docs/architecture/cqrs-guide.md`
+**Best for**: Microservices, complex domains, DDD, event-driven systems, complex reporting
+
+→ **Read**: `/docs/architecture/microservice-patterns.md` (Complete microservice guide)
+→ **Read**: `/docs/architecture/cqrs-guide.md` (Detailed CQRS patterns)
 → **Templates**: `/templates/shared/cqrs/`
 
 ---
