@@ -1496,6 +1496,45 @@ app.UseSwaggerUI(options =>
 - Custom styling to match company brand
 - Need to remove Swagger branding
 
+### D) Professional Landing Page with Smart Navigation ⭐ (Recommended)
+```csharp
+// Beautiful dashboard with health status + smart navigation
+app.UseMiddleware<LandingPageMiddleware>();  // Development: Shows Swagger link
+                                               // Production: Shows health status only
+```
+
+✅ **Choose if:**
+- Want professional-looking API dashboard
+- Need different UI for Development vs Production
+- Want health status visible at root path
+- Hide Swagger in production for security
+- Want branded landing experience
+- Clean, modern UI with status indicators
+
+**What Users See**:
+- **Development**: Beautiful dashboard with Swagger link + Health check
+- **Production**: Minimal dashboard with health status only
+- **Features**:
+  - ✨ Professional gradient background
+  - 💚 Green health status badge
+  - 🔗 Clickable navigation buttons
+  - 🔧 Environment indicator (Dev/Prod)
+  - 📱 Fully responsive design
+  - 🔐 Swagger hidden in production
+
+**Startup Experience**:
+```
+App starts → Visit http://localhost:5000/ → Professional dashboard
+  ↓
+Development: [📖 API Documentation] [💚 Health Check]
+  ↓
+Production: [💚 Health Check Status]
+```
+
+→ **Read**: `/templates/shared/middleware/LANDING-PAGE-SETUP.md`
+→ **Middleware**: `/templates/shared/middleware/landing-page.template.cs`
+→ **Complete Program.cs**: `/templates/shared/middleware/program-with-landing-page.template.cs`
+
 ---
 
 ## Port Configuration
