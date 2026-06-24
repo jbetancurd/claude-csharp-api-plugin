@@ -1,8 +1,7 @@
 {
   "name": "Claude C# API Architecture Plugin",
-  "version": "1.1.0",
-  "released": "2026-06-24",
-  "description": "Production-grade C# APIs with C# version-aware guidance, Microsoft Coding Conventions, SOLID, Onion Architecture, DRY, TDD with xUnit, and comprehensive templates",
+  "version": "1.0.0",
+  "description": "Comprehensive guide and templates for building production-grade C# APIs with SOLID, Onion Architecture, DRY, TDD with xUnit, and SOLID principles",
   "author": "Your Name",
   "license": "MIT",
   "tags": [

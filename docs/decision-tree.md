@@ -266,14 +266,6 @@ All subsequent decisions will be tailored to maximize your chosen version's capa
 - Needs independent deployment
 - Example: Order Service, User Service, Payment Service
 
-**⭐ Microservice-Specific Considerations:**
-- Will ask about **CQRS** (Step 6) for complex logic
-- Will ask about **Bootstrap pattern** for initialization
-- Event-driven communication with other services
-- Database per service principle
-- Distributed transactions and sagas
-
-→ **Read**: `/docs/architecture/microservice-patterns.md` (COMPREHENSIVE guide)
 → **Templates**: `/templates/*/microservice/`
 → **Examples**: `examples/*/[service]-microservice/`
 
@@ -581,21 +573,14 @@ Centralized user management across multiple apps
 
 **Question: Will you use CQRS (Command Query Responsibility Segregation)?**
 
-**⭐ Special Note for Microservices:**
-If you selected **Microservice** in Step 1, CQRS is often beneficial for:
-- Event-driven communication with other services
-- Complex business logic
-- Separate read and write optimization
-- Event sourcing for audit trail
-
 ### A) Traditional Architecture (No CQRS)
 ✅ **Choose if:**
 - Simple CRUD operations (Create, Read, Update, Delete)
 - Same models for reading and writing
+- Monolithic service
 - Quick prototyping
 - Simple to moderate complexity
 - Team unfamiliar with CQRS
-- Single developer / small team
 
 **Structure:**
 ```
@@ -605,84 +590,44 @@ Controllers → Services → Repositories → Single Database
 
 **Best for**: CRUD APIs, simple microservices, learning projects
 
-→ **Continue with Step 7**
+→ **Continue with Step 6**
 
-### B) CQRS Pattern (Separated Read/Write) ⭐ Recommended for Microservices
+### B) CQRS Pattern (Separated Read/Write)
 ✅ **Choose if:**
 - Complex business logic (many validations, rules)
 - Heavy read operations vs writes (different optimization)
-- Need event sourcing / audit trail
+- Need event sourcing
 - Multiple read models needed
 - Different schemas for read/write beneficial
-- **Microservice with event-driven architecture**
 - Scaling reads independently
-- Team size: 2+ developers
 
 **Structure:**
 ```
 Write Side (Commands):              Read Side (Queries):
 Controllers → Commands             Controllers → Queries
     ↓                                   ↓
-Services → Event Handlers           Read Models
+Services → Repositories             Services → Read Models
     ↓                                   ↓
-Write Database → Event Store    ↔    Read Database
-(Normalized)     (Immutable)      (Denormalized/Cache)
+Write Database ←→ Event Stream ←→ Read Database
+(Normalized)          (Audit)       (Denormalized)
 ```
 
 **Example:**
 ```csharp
-// Command: Create order (write side)
-public class CreateOrderCommand(int UserId, List<OrderItem> Items);
+// Command: Create order (normalized write model)
+public class CreateOrderCommand { ... }
 
-public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, int>
-{
-    public async Task<int> HandleAsync(CreateOrderCommand command)
-    {
-        var order = Order.Create(command.UserId, command.Items);
-        await _repository.AddAsync(order);
-        await _eventPublisher.PublishAsync(order.GetEvents());
-        return order.Id;
-    }
-}
+// Query: Get order summary (denormalized read model)
+public class GetOrderSummaryQuery { ... }
 
-// Query: Get order summary (read side)
-public class GetOrderSummaryQuery(int OrderId);
-
-public class GetOrderSummaryQueryHandler : IQueryHandler<GetOrderSummaryQuery, OrderSummaryDto>
-{
-    public async Task<OrderSummaryDto> HandleAsync(GetOrderSummaryQuery query)
-    {
-        return await _readRepository.GetOrderSummaryAsync(query.OrderId);
-    }
-}
-
-// Event Handler: Sync read model when order created
-public class OrderCreatedEventHandler : IEventHandler<OrderCreatedEvent>
-{
-    public async Task HandleAsync(OrderCreatedEvent @event)
-    {
-        var summary = new OrderSummary 
-        { 
-            Id = @event.OrderId, 
-            Status = "Created",
-            Total = @event.Total
-        };
-        await _readRepository.AddAsync(summary);
-    }
-}
+// Separate handlers
+public class CreateOrderCommandHandler { ... }
+public class GetOrderSummaryQueryHandler { ... }
 ```
 
-**Microservice Benefits**:
-- 🎯 Events published to event bus → Other services consume
-- 📊 Separate optimization for reads vs writes
-- 🔄 Audit trail via event store
-- ⚡ Scale read model independently
-- 🔐 Strong consistency on write side
+**Best for**: Complex domains, DDD (Domain-Driven Design), event sourcing, complex reporting
 
-**Best for**: Microservices, complex domains, DDD, event-driven systems, complex reporting
-
-→ **Read**: `/docs/architecture/microservice-patterns.md` (Complete microservice guide)
-→ **Read**: `/docs/architecture/cqrs-guide.md` (Detailed CQRS patterns)
+→ **Read**: `/docs/architecture/cqrs-guide.md`
 → **Templates**: `/templates/shared/cqrs/`
 
 ---
@@ -1550,45 +1495,6 @@ app.UseSwaggerUI(options =>
 - Multiple API versions
 - Custom styling to match company brand
 - Need to remove Swagger branding
-
-### D) Professional Landing Page with Smart Navigation ⭐ (Recommended)
-```csharp
-// Beautiful dashboard with health status + smart navigation
-app.UseMiddleware<LandingPageMiddleware>();  // Development: Shows Swagger link
-                                               // Production: Shows health status only
-```
-
-✅ **Choose if:**
-- Want professional-looking API dashboard
-- Need different UI for Development vs Production
-- Want health status visible at root path
-- Hide Swagger in production for security
-- Want branded landing experience
-- Clean, modern UI with status indicators
-
-**What Users See**:
-- **Development**: Beautiful dashboard with Swagger link + Health check
-- **Production**: Minimal dashboard with health status only
-- **Features**:
-  - ✨ Professional gradient background
-  - 💚 Green health status badge
-  - 🔗 Clickable navigation buttons
-  - 🔧 Environment indicator (Dev/Prod)
-  - 📱 Fully responsive design
-  - 🔐 Swagger hidden in production
-
-**Startup Experience**:
-```
-App starts → Visit http://localhost:5000/ → Professional dashboard
-  ↓
-Development: [📖 API Documentation] [💚 Health Check]
-  ↓
-Production: [💚 Health Check Status]
-```
-
-→ **Read**: `/templates/shared/middleware/LANDING-PAGE-SETUP.md`
-→ **Middleware**: `/templates/shared/middleware/landing-page.template.cs`
-→ **Complete Program.cs**: `/templates/shared/middleware/program-with-landing-page.template.cs`
 
 ---
 
