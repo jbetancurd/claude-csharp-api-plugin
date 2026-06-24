@@ -2,6 +2,258 @@
 
 Use this interactive guide to determine the best architecture and API style for your project.
 
+## Step 0: C# Version & Language Features ⭐ START HERE
+
+**Question: What C# version will you be using? (This enables version-specific features and patterns)**
+
+Understanding your target C# version is critical—each version brings powerful new features that can significantly improve code clarity, performance, and safety. Claude will tailor all code recommendations and patterns to your chosen version.
+
+### C# Version Reference
+
+| Version | Release | Key Features | Recommended For | EOL |
+|---------|---------|--------------|-----------------|-----|
+| **C# 12** | Nov 2023 | Primary constructors, collection expressions, inline arrays | ⭐ **Latest & Recommended** | .NET 9+ |
+| **C# 11** | Nov 2022 | Required members, file-scoped types, raw string literals | Modern enterprise | .NET 8+ |
+| **C# 10** | Nov 2021 | Records, init-only properties, file-scoped namespaces | Production APIs | .NET 6+ |
+| **C# 9** | Nov 2020 | Records, init properties, top-level statements | Legacy maintained | .NET 5/6 |
+| **C# 8.0** | Sep 2019 | Nullable reference types, switch expressions | Older projects | .NET Core 3+ |
+| **C# 7.0+** | 2017 | Tuples, pattern matching, local functions | Legacy systems | .NET Framework |
+
+---
+
+### A) C# 12 (Latest - Recommended) ⭐
+**Released**: November 2023  
+**Frameworks**: .NET 9+  
+**Status**: Current, actively supported
+
+**Key Features**:
+```csharp
+// Primary Constructors (cleaner dependency injection)
+public class UserService(IUserRepository repository, ILogger<UserService> logger)
+{
+    // No need for property declarations - parameters are fields!
+    public async Task<User> GetUserAsync(int id) 
+        => await repository.GetByIdAsync(id);
+}
+
+// Collection Expressions (simpler list/array creation)
+var users = [user1, user2, user3];  // Instead of new List<User> { ... }
+var merged = [..existingUsers, ..newUsers];
+
+// Inline Arrays (performance optimization)
+Span<int> numbers = [1, 2, 3, 4, 5];
+
+// Lambda Improvements
+var handler = async () => await ProcessAsync();
+```
+
+**Why Choose C# 12**:
+✅ Most modern language features  
+✅ Better performance optimizations  
+✅ Cleaner, more concise code  
+✅ Enhanced async/await patterns  
+✅ Improved null safety  
+✅ Latest tooling support  
+
+**Recommended for**: New projects, modern APIs, teams willing to upgrade
+
+→ **Read**: `/docs/csharp-versions/csharp12-features.md` (create with feature guide)
+→ **Templates**: All templates use C# 12 patterns by default
+
+---
+
+### B) C# 11 (Enterprise Standard)
+**Released**: November 2022  
+**Frameworks**: .NET 8+  
+**Status**: LTS (Long-Term Support)
+
+**Key Features**:
+```csharp
+// Required Members (enforce initialization)
+public class User
+{
+    public required string Email { get; init; }
+    public required string Name { get; init; }
+    public string? Phone { get; init; }
+}
+
+// File-Scoped Types (better encapsulation)
+file class InternalHelper { }  // Only visible in this file
+
+// Raw String Literals (SQL, JSON without escaping)
+string json = """
+{
+    "name": "John",
+    "email": "john@example.com"
+}
+""";
+
+// Pattern Matching Enhancements
+bool isValidUser = user switch
+{
+    { Email: not null, Name: not null } => true,
+    _ => false
+};
+```
+
+**Why Choose C# 11**:
+✅ Production-ready  
+✅ LTS support (.NET 8)  
+✅ Strong null safety enforcement  
+✅ Required properties prevent bugs  
+✅ Reduced boilerplate  
+
+**Recommended for**: Enterprise APIs, teams requiring LTS stability
+
+→ **Read**: `/docs/csharp-versions/csharp11-features.md` (create with feature guide)
+→ **Use when**: .NET 8 LTS is your target
+
+---
+
+### C) C# 10 (Previous Standard)
+**Released**: November 2021  
+**Frameworks**: .NET 6+  
+**Status**: Supported
+
+**Key Features**:
+```csharp
+// Records (immutable by default)
+public record User(int Id, string Email, string Name);
+
+// Init-Only Properties (immutable after init)
+public class Order
+{
+    public int Id { get; init; }
+    public string OrderNumber { get; init; }
+}
+
+// File-Scoped Namespaces (cleaner files)
+file namespace MyApp.Services;
+public class UserService { }
+
+// Pattern Matching with Relational Operators
+bool isExpired = order switch
+{
+    { CreatedDate: < DateTime.Now.AddDays(-30) } => true,
+    _ => false
+};
+```
+
+**Why Choose C# 10**:
+✅ Mature, stable  
+✅ Record support essential for DTOs  
+✅ Good null safety  
+✅ Excellent for immutable data  
+
+**Recommended for**: Active maintenance projects, .NET 6/7 users
+
+→ **Read**: `/docs/csharp-versions/csharp10-features.md` (create with feature guide)
+
+---
+
+### D) C# 9 (Legacy Maintained)
+**Released**: November 2020  
+**Frameworks**: .NET 5, .NET 6  
+**Status**: Still supported but aging
+
+**Key Features**:
+```csharp
+// Records (first version)
+public record User(int Id, string Email);
+
+// Init-Only Properties
+public class Order
+{
+    public string OrderNumber { get; init; }
+}
+
+// Top-Level Statements
+Console.WriteLine("Hello World");  // No Main() needed for simple apps
+
+// Pattern Matching (basic)
+if (user is User { Email: not null })
+{
+    // Process user
+}
+```
+
+**Why Choose C# 9**:
+✅ Legacy support  
+✅ Still capable and functional  
+✅ Records available  
+⚠️ Missing C# 10+ improvements  
+
+**Recommended for**: Maintaining existing C# 9 codebases only
+
+---
+
+### E) C# 8.0 or Earlier (Older Legacy)
+**Status**: Outdated
+
+❌ **Not Recommended for New Projects**
+
+This plugin focuses on modern C# development. Upgrading from C# 8 is strongly advised for:
+- Security features
+- Performance improvements
+- Modern language expressiveness
+- Better IDE support
+
+---
+
+## C# Version Features Comparison
+
+| Feature | C# 8 | C# 9 | C# 10 | C# 11 | C# 12 |
+|---------|------|------|-------|-------|-------|
+| **Nullable Reference Types** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Records** | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **Init-Only Properties** | ❌ | ✅ | ✅ | ✅ | ✅ |
+| **File-Scoped Namespaces** | ❌ | ❌ | ✅ | ✅ | ✅ |
+| **Required Members** | ❌ | ❌ | ❌ | ✅ | ✅ |
+| **Primary Constructors** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Collection Expressions** | ❌ | ❌ | ❌ | ❌ | ✅ |
+| **Pattern Matching** | ⭐ Basic | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Async/Await** | ✅ | ✅ | ✅ | ✅ | ✅⭐ Enhanced |
+| **LINQ** | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+---
+
+## How Claude Will Use Your C# Version Choice
+
+Once you specify your C# version, Claude will:
+
+1. **Generate code using version-specific features**
+   - C# 12: Primary constructors, collection expressions
+   - C# 11: Required members, file-scoped types
+   - C# 10: Records, init-only properties
+   - Others: Traditional patterns
+
+2. **Recommend patterns appropriate for your version**
+   - Modern error handling with results pattern
+   - Immutability approaches
+   - Async patterns
+   - Validation techniques
+
+3. **Reference version-specific documentation**
+   - Feature guides in `/docs/csharp-versions/`
+   - Examples using your version's capabilities
+   - Performance tips for your version
+
+4. **Validate against version capabilities**
+   - Won't suggest C# 12 features if you target C# 10
+   - Will offer alternatives for older versions
+   - Warn about compatibility issues
+
+---
+
+## Recommended Path Forward
+
+**→ Choose your C# version from A-E above**  
+**→ Then proceed to Step 1: Project Type & Scope below**
+
+All subsequent decisions will be tailored to maximize your chosen version's capabilities and features.
+
+---
+
 ## Step 1: Project Type & Scope
 
 **Question: What is the primary purpose and scope of this project?**

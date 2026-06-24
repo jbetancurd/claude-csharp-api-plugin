@@ -16,10 +16,11 @@ When working on C# API projects, Claude Code will:
 
 ### When You're Starting a C# API Project
 Claude will:
-1. Suggest the decision-tree questionnaire
-2. Based on answers, recommend project structure
-3. Provide relevant templates and examples
-4. Explain architectural choices
+1. **Ask about your C# version first** (critical for feature recommendations)
+2. Suggest the decision-tree questionnaire
+3. Based on answers, recommend project structure
+4. Provide relevant templates and examples tailored to your C# version
+5. Explain architectural choices using version-specific patterns
 
 ### When You're Implementing Code
 Claude will:
@@ -114,6 +115,69 @@ The plugin enforces **Onion Architecture** with four layers:
 - **L**iskov Substitution: Derived classes substitute base classes
 - **I**nterface Segregation: Clients depend on focused interfaces
 - **D**ependency Inversion: Depend on abstractions, not concretions
+
+### C# Coding Conventions
+
+This plugin adheres to **Microsoft C# Coding Conventions** for clean, professional, and maintainable code. All code examples, templates, and recommendations follow these standards:
+
+**Key Conventions Applied:**
+- **Naming**: PascalCase for classes/methods, camelCase for local variables, UPPER_CASE for constants
+- **Formatting**: 4-space indentation, opening braces on new line (Allman style)
+- **Structure**: Using statements at top, organized by System > Third-party > Local namespaces
+- **Comments**: XML documentation for public members, meaningful comments for complex logic
+- **Async/Await**: Task-based patterns, never blocking calls
+- **Null Safety**: Null-coalescing operators, pattern matching where appropriate
+- **var keyword**: Use `var` for obvious types, explicit types for clarity
+- **LINQ**: Prefer method syntax, use query syntax for complex scenarios
+- **Error Handling**: Proper exception handling with meaningful messages
+
+**Reference**: [Microsoft C# Coding Conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions)
+
+When Claude generates code or reviews implementations, it will validate against these conventions to ensure consistency and professionalism across all C# API projects.
+
+### C# Version-Specific Features
+
+This plugin recognizes that **different C# versions unlock different capabilities**, and all generated code will leverage the features of your chosen version:
+
+**Why Version Matters:**
+- **C# 12** (Latest): Primary constructors, collection expressions, inline arrays - cleanest syntax
+- **C# 11** (LTS): Required members, file-scoped types, raw string literals - production-ready
+- **C# 10**: Records, init-only properties - immutability focused
+- **C# 9**: Records (basic), init properties - legacy but capable
+- **C# 8 or earlier**: Nullable reference types only - consider upgrading
+
+**How Claude Uses Your Version:**
+1. **First question**: "What C# version will you target?" (asked at start of decision tree)
+2. **Code generation**: Uses patterns specific to your version
+3. **Template selection**: Provides version-appropriate examples
+4. **Feature recommendations**: Suggests patterns that only your version supports
+5. **Migration guidance**: Offers upgrade paths when beneficial
+
+**Example - Primary Constructors (C# 12 only)**:
+```csharp
+// C# 12 - Cleaner
+public class UserService(IUserRepository repository, ILogger<UserService> logger)
+{
+    public async Task<User> GetAsync(int id) => await repository.GetByIdAsync(id);
+}
+
+// C# 11 & earlier - More verbose
+public class UserService
+{
+    private readonly IUserRepository _repository;
+    private readonly ILogger<UserService> _logger;
+    
+    public UserService(IUserRepository repository, ILogger<UserService> logger)
+    {
+        _repository = repository;
+        _logger = logger;
+    }
+}
+```
+
+**Reference**: [Microsoft C# Version History & What's New](https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-version-history)
+
+See `/docs/csharp-versions/csharp-version-features.md` for detailed feature guides by version.
 
 ### DRY - Don't Repeat Yourself
 
@@ -293,12 +357,13 @@ Each example includes:
 ## Integration Points
 
 Claude will reference this plugin when:
-1. **Starting new C# API project** - Suggests decision-tree and templates
-2. **Implementing repositories** - Shows ORM examples and patterns
-3. **Creating services** - Demonstrates application layer organization
-4. **Writing controllers** - Shows API endpoint patterns
-5. **Writing tests** - Provides xUnit templates and practices
-6. **Reviewing code** - Checks architecture and checklist compliance
+1. **Starting new C# API project** - Asks C# version first, then suggests decision-tree and templates
+2. **Implementing repositories** - Shows ORM examples with version-specific patterns
+3. **Creating services** - Demonstrates application layer using your C# version's features
+4. **Writing controllers** - Shows API endpoint patterns optimized for your version
+5. **Writing tests** - Provides xUnit templates using your version's capabilities
+6. **Reviewing code** - Checks architecture, conventions, and version feature usage
+7. **Suggesting improvements** - Recommends version-specific optimizations
 
 ## Maintenance Notes
 
