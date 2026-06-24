@@ -1,45 +1,120 @@
 {
   "name": "claude-csharp-api-plugin",
-  "description": "Production-grade C# API architecture with C# version-aware guidance, SOLID principles, Onion Architecture, DRY, TDD, and coding conventions",
+  "id": "claude-csharp-api-plugin",
+  "displayName": "Claude C# API Architecture Plugin",
+  "description": "Production-grade C# API architecture with C# version-aware guidance, Microsoft Coding Conventions, SOLID principles, Onion Architecture, DRY, TDD, and comprehensive templates",
   "version": "1.1.0",
+  "released": "2026-06-24",
   "author": {
-    "name": "jbetancurd"
+    "name": "jbetancurd",
+    "email": "jbetancd@gmail.com",
+    "url": "https://github.com/jbetancurd"
   },
   "license": "MIT",
+  "homepage": "https://github.com/jbetancurd/claude-csharp-api-plugin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jbetancurd/claude-csharp-api-plugin.git"
+  },
   "keywords": [
     "csharp",
     "csharp-version",
     "api",
     "architecture",
     "solid",
-    "onion",
+    "onion-architecture",
+    "coding-conventions",
     "tdd",
     "xunit",
-    "coding-conventions",
     "polly",
     "microservices",
-    "design-patterns"
+    "design-patterns",
+    "clean-code"
   ],
   "category": "development",
+  "tags": ["architecture", "api-design", "c#-versions", "coding-standards"],
   "skills": ["./skills/jab-csharp-api-guidelines"],
   "documentation": {
-    "guide": "CLAUDE.md",
-    "decisionTree": "docs/decision-tree.md",
-    "versionFeatures": "docs/csharp-versions/csharp-version-features.md",
-    "versionSelection": "docs/csharp-versions/version-selection-guide.md",
-    "quickStart": "QUICKSTART.md"
+    "main": "../CLAUDE.md",
+    "quickStart": "../QUICKSTART.md",
+    "setup": "../PLUGIN_SETUP.md",
+    "decisionTree": "../docs/decision-tree.md",
+    "versionFeatures": "../docs/csharp-versions/csharp-version-features.md",
+    "versionSelection": "../docs/csharp-versions/version-selection-guide.md",
+    "versionOverview": "../docs/csharp-versions/README.md"
   },
   "features": [
-    "C# version-aware code generation (C# 12, 11, 10, 9, 8+)",
-    "Microsoft C# Coding Conventions compliance",
-    "Onion Architecture patterns",
-    "SOLID principles guidance",
-    "API decision tree (REST, RESTful, GraphQL)",
-    "ORM selection guide (Dapper vs EF)",
-    "TDD with xUnit templates",
-    "Polly resilience patterns",
-    "Caching strategies",
-    "Architecture audit checklists"
-  ]
+    "✅ C# version-aware code generation (C# 12, 11, 10, 9, 8+)",
+    "✅ Microsoft C# Coding Conventions compliance",
+    "✅ Decision tree with C# version selection (Step 0)",
+    "✅ Onion Architecture patterns and examples",
+    "✅ SOLID principles guidance with code samples",
+    "✅ API style comparison (REST, RESTful, GraphQL)",
+    "✅ ORM selection guide (Dapper vs Entity Framework)",
+    "✅ TDD with xUnit templates and patterns",
+    "✅ Polly resilience patterns for distributed systems",
+    "✅ Caching strategies (in-memory, Redis, hybrid)",
+    "✅ WebSocket and real-time communication",
+    "✅ Architecture audit checklists",
+    "✅ 9+ complete example projects",
+    "✅ Repository and Service templates",
+    "✅ Test organization and BDD patterns"
+  ],
+  "requirements": {
+    "dotnet": "6.0 or higher",
+    "csharp": "8.0 or higher",
+    "claudeCode": "latest"
+  },
+  "changelog": {
+    "1.1.0": {
+      "date": "2026-06-24",
+      "changes": [
+        "Added C# version-aware guidance with Step 0 in decision tree",
+        "Added Microsoft C# Coding Conventions section to CLAUDE.md",
+        "Created comprehensive C# version features guide (C# 12, 11, 10, 9, 8)",
+        "Created version selection guide for Claude integration",
+        "Updated plugin marketplace metadata for discovery",
+        "Added PLUGIN_SETUP.md for proper installation and reuse",
+        "Enhanced decision tree with version-specific code patterns",
+        "Improved Claude integration points for version awareness"
+      ]
+    },
+    "1.0.0": {
+      "date": "2026-03-01",
+      "changes": [
+        "Initial release",
+        "Complete Onion Architecture guide",
+        "SOLID principles documentation",
+        "REST, RESTful, and GraphQL style guides",
+        "Dapper and EF repository templates",
+        "xUnit test templates",
+        "Polly resilience patterns",
+        "Complete example projects",
+        "Architecture audit checklist"
+      ]
+    }
+  },
+  "settings": {
+    "autoLoad": true,
+    "scope": "global",
+    "discoverability": "marketplace",
+    "updateCheck": "weekly",
+    "analytics": false
+  },
+  "integrations": {
+    "claudeCode": {
+      "references": [
+        "CLAUDE.md (main plugin guide)",
+        "docs/decision-tree.md (Step 0: C# version selection)",
+        "docs/csharp-versions/ (version feature guides)"
+      ],
+      "features": [
+        "Version-aware code generation",
+        "Template selection by C# version",
+        "Architecture validation",
+        "Code review guidance"
+      ]
+    }
+  }
 }
 

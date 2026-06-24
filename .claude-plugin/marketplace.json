@@ -1,28 +1,47 @@
 {
   "name": "csharp-api-plugin",
-  "id": "csharp-api-plugin",
+  "id": "csharp-api-plugin-v1.1",
+  "displayName": "Claude C# API Architecture Plugin",
   "owner": {
-    "name": "jbetancurd"
+    "name": "jbetancurd",
+    "email": "jbetancd@gmail.com",
+    "url": "https://github.com/jbetancurd"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jbetancurd/claude-csharp-api-plugin"
   },
   "metadata": {
-    "description": "Production-grade C# API development with SOLID principles, Onion Architecture, DRY patterns, TDD with xUnit, Serilog logging, error handling patterns, and ready-to-use templates",
-    "version": "1.0.0"
+    "description": "Production-grade C# API development with C# version-aware guidance, Microsoft Coding Conventions, SOLID principles, Onion Architecture, DRY patterns, TDD with xUnit, and comprehensive templates",
+    "version": "1.1.0",
+    "released": "2026-06-24",
+    "license": "MIT"
   },
   "plugins": [
     {
       "name": "claude-csharp-api-plugin",
       "source": "./",
-      "description": "Comprehensive guide for C# API development covering architecture, design patterns, logging, error handling, ORM selection, and TDD",
-      "version": "1.0.0",
+      "description": "C# version-aware API architecture plugin with coding conventions, decision trees, ORM guidance, testing strategies, and production patterns",
+      "version": "1.1.0",
+      "released": "2026-06-24",
       "author": {
-        "name": "jbetancurd"
+        "name": "jbetancurd",
+        "email": "jbetancd@gmail.com"
       },
+      "license": "MIT",
+      "homepage": "https://github.com/jbetancurd/claude-csharp-api-plugin",
+      "documentation": "https://github.com/jbetancurd/claude-csharp-api-plugin/blob/main/CLAUDE.md",
       "keywords": [
         "csharp",
+        "csharp-version",
+        "csharp-12",
+        "csharp-11",
+        "csharp-10",
         "api",
         "architecture",
         "solid",
-        "onion",
+        "onion-architecture",
+        "coding-conventions",
         "dapper",
         "entity-framework",
         "rest",
@@ -32,9 +51,76 @@
         "xunit",
         "serilog",
         "polly",
-        "microservices"
+        "microservices",
+        "design-patterns",
+        "clean-code",
+        "domain-driven-design"
       ],
-      "category": "development"
+      "category": "development",
+      "tags": [
+        "architecture",
+        "api-design",
+        "c#-versions",
+        "coding-standards",
+        "templates",
+        "testing"
+      ],
+      "features": [
+        "C# version-aware code generation (C# 12, 11, 10, 9, 8+)",
+        "Microsoft C# Coding Conventions guidance",
+        "Decision tree with C# version selection",
+        "Onion Architecture patterns",
+        "SOLID principles implementation",
+        "ORM selection guide (Dapper vs EF Core)",
+        "API style comparison (REST, RESTful, GraphQL)",
+        "TDD with xUnit templates",
+        "Polly resilience patterns",
+        "Caching strategies (in-memory, Redis, hybrid)",
+        "WebSocket integration",
+        "Architecture audit checklists",
+        "3+ example projects per API style",
+        "Repository and Service templates",
+        "Test organization patterns"
+      ],
+      "requirements": {
+        "dotnet": "6.0+",
+        "csharp": "8.0+"
+      },
+      "relatedPlugins": [],
+      "stats": {
+        "downloads": 0,
+        "rating": 0,
+        "reviews": 0,
+        "active": true
+      },
+      "changelog": {
+        "1.1.0": [
+          "Added C# version-aware guidance (Step 0 in decision tree)",
+          "Added Microsoft C# Coding Conventions section",
+          "Added comprehensive C# version features guide (12, 11, 10, 9, 8)",
+          "Added version selection guide for Claude integration",
+          "Updated plugin metadata for marketplace discovery",
+          "Added PLUGIN_SETUP.md for proper installation",
+          "Enhanced decision tree with version-specific patterns",
+          "Improved Claude integration points"
+        ],
+        "1.0.0": [
+          "Initial release",
+          "Complete Onion Architecture guide",
+          "SOLID principles documentation",
+          "REST, RESTful, and GraphQL style guides",
+          "Dapper and EF repository templates",
+          "xUnit test templates",
+          "Polly resilience patterns",
+          "Complete example projects",
+          "Architecture audit checklist"
+        ]
+      }
     }
-  ]
+  ],
+  "settings": {
+    "autoLoad": true,
+    "scope": "global",
+    "updateCheck": "weekly"
+  }
 }
